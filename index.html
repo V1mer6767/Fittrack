@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FitTrack — Трекер тренувань</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue1: #0a0f2e;
+  --blue2: #0d1b4b;
+  --accent: #4f8ef7;
+  --accent2: #7b5ea7;
+  --glow: rgba(79,142,247,0.35);
+  --grad: linear-gradient(135deg, #4f8ef7 0%, #7b5ea7 100%);
+  --grad-soft: linear-gradient(135deg, rgba(79,142,247,0.15) 0%, rgba(123,94,167,0.15) 100%);
+  --text: #f0f4ff;
+  --muted: #5a6a8a;
+  --card: rgba(255,255,255,0.04);
+  --border: rgba(79,142,247,0.18);
+  --red: #ff5572;
+  --green: #2ecc8a;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--blue1);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(79,142,247,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(123,94,167,0.12) 0%, transparent 60%);
+  font-family: 'Outfit', sans-serif;
+  color: var(--text);
+  padding-bottom: 100px;
+}
+
+header {
+  padding: 36px 24px 20px;
+  position: relative;
+  overflow: hidden;
+}
+header::before {
+  content: '';
+  position: absolute;
+  top: -40px; left: -40px; right: -40px;
+  height: 160px;
+  background: linear-gradient(180deg, rgba(79,142,247,0.1) 0%, transparent 100%);
+  pointer-events: none;
+}
+.header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.logo { font-size: 28px; font-weight: 900; letter-spacing: -0.5px; }
+.logo span { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header-date { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.streak-badge {
+  background: var(--grad-soft);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 14px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.streak-badge strong { display: block; font-size: 22px; font-weight: 800; line-height: 1; }
+
+nav {
+  display: flex;
+  gap: 8px;
+  padding: 0 24px 20px;
+}
+nav button {
+  flex: 1;
+  padding: 12px 6px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .25s;
+  font-family: 'Outfit', sans-serif;
+}
+nav button.active {
+  background: var(--grad);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(79,142,247,0.35);
+}
+
+.view { display: none; padding: 0 24px; }
+.view.active { display: block; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(10px);
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+.field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+select, input[type=number], input[type=text] {
+  width: 100%;
+  padding: 13px 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 15px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+  outline: none;
+  transition: border .2s, box-shadow .2s;
+}
+select:focus, input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79,142,247,0.15);
+}
+select { margin-bottom: 12px; appearance: none; cursor: pointer; }
+
+.row3 { display: flex; gap: 10px; margin-bottom: 14px; }
+.row3 > div { flex: 1; }
+
+.volume-pill {
+  display: block;
+  background: var(--grad-soft);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  padding: 7px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 14px;
+  text-align: center;
+  width: 100%;
+}
+
+.btn-main {
+  width: 100%;
+  padding: 16px;
+  background: var(--grad);
+  border: none;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .3s;
+  font-family: 'Outfit', sans-serif;
+  box-shadow: 0 4px 20px rgba(79,142,247,0.3);
+}
+.btn-main:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(79,142,247,0.45); }
+.btn-main.saved { background: linear-gradient(135deg, #2ecc8a, #1a9e6a); box-shadow: 0 4px 20px rgba(46,204,138,0.3); }
+
+.btn-outline {
+  width: 100%;
+  padding: 11px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: 'Outfit', sans-serif;
+  margin-bottom: 14px;
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+.btn-xs {
+  padding: 9px 14px;
+  background: var(--grad-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  transition: all .2s;
+}
+.btn-xs.cancel { background: rgba(255,85,114,0.08); border-color: rgba(255,85,114,0.25); color: var(--red); }
+
+.stats-row { display: flex; gap: 10px; margin-bottom: 16px; }
+.stat-box {
+  flex: 1;
+  background: var(--grad-soft);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 8px;
+  text-align: center;
+}
+.stat-val { font-size: 22px; font-weight: 800; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
+.stat-lbl { font-size: 9px; color: var(--muted); font-weight: 600; text-transform: uppercase; margin-top: 4px; }
+
+.entry-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.entry-row:last-child { border-bottom: none; }
+.entry-name { font-size: 14px; font-weight: 600; }
+.entry-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.btn-del {
+  background: rgba(255,85,114,0.08);
+  border: 1px solid rgba(255,85,114,0.2);
+  border-radius: 8px; color: var(--red);
+  cursor: pointer; font-size: 14px;
+  padding: 5px 9px; opacity: 0.7;
+  transition: opacity .2s; flex-shrink: 0;
+}
+.btn-del:hover { opacity: 1; }
+
+.badge {
+  display: inline-block; background: var(--grad);
+  border-radius: 20px; padding: 2px 10px;
+  font-size: 11px; font-weight: 700; color: #fff; margin-left: 8px;
+}
+.pr-tag {
+  display: inline-block;
+  background: rgba(255,200,50,0.12);
+  border: 1px solid rgba(255,200,50,0.35);
+  border-radius: 6px; padding: 1px 8px;
+  font-size: 10px; font-weight: 700; color: #ffc832; margin-left: 8px;
+}
+
+.empty {
+  text-align: center; padding: 60px 0 40px;
+  color: var(--muted); font-size: 14px; line-height: 2;
+}
+.empty-icon { font-size: 48px; display: block; margin-bottom: 12px; }
+.empty strong { color: var(--accent); font-weight: 600; display: block; }
+
+canvas { width: 100% !important; }
+.chart-wrap { margin: 12px 0 6px; border-radius: 12px; overflow: hidden; }
+.chart-dates { display: flex; justify-content: space-between; margin-top: 4px; }
+.chart-dates span { font-size: 9px; color: var(--muted); }
+
+.custom-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+.custom-row input { flex: 1; margin-bottom: 0; }
+
+.hist-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.hist-date { font-size: 14px; font-weight: 700; }
+.hist-vol { font-size: 12px; font-weight: 700; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hist-exlist { font-size: 11px; color: var(--muted); margin-bottom: 12px; line-height: 1.7; }
+
+.diff-pos { color: var(--green); }
+.diff-neg { color: var(--red); }
+.divider { height: 1px; background: var(--border); margin: 14px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div>
+      <div class="logo">🏋️ <span>FitTrack</span></div>
+      <div class="header-date" id="header-date"></div>
+    </div>
+    <div class="streak-badge">
+      <strong id="streak-num">0</strong>
+      🔥 днів
+    </div>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showView('log',this)">📋 Запис</button>
+  <button onclick="showView('progress',this)">📈 Прогрес</button>
+  <button onclick="showView('history',this)">🗂 Історія</button>
+</nav>
+
+<div class="view active" id="view-log">
+  <div class="card">
+    <div class="card-title">Нове тренування</div>
+    <label class="field-label">Вправа</label>
+    <select id="ex-select"></select>
+    <div id="custom-area" style="display:none">
+      <div class="custom-row">
+        <input type="text" id="custom-input" placeholder="Назва вправи" onkeydown="if(event.key==='Enter')addCustomEx()"/>
+        <button class="btn-xs" onclick="addCustomEx()">✓</button>
+        <button class="btn-xs cancel" onclick="hideCustom()">✕</button>
+      </div>
+    </div>
+    <button class="btn-outline" onclick="showCustom()">+ Додати свою вправу</button>
+    <div class="row3">
+      <div>
+        <label class="field-label">Вага (кг)</label>
+        <input type="number" id="inp-weight" placeholder="80" min="0" step="0.5" oninput="updatePreview()"/>
+      </div>
+      <div>
+        <label class="field-label">Підходи</label>
+        <input type="number" id="inp-sets" placeholder="4" min="1" oninput="updatePreview()"/>
+      </div>
+      <div>
+        <label class="field-label">Повтори</label>
+        <input type="number" id="inp-reps" placeholder="10" min="1" oninput="updatePreview()"/>
+      </div>
+    </div>
+    <div class="volume-pill" id="vol-preview">Введи дані для розрахунку об'єму</div>
+    <button class="btn-main" id="add-btn" onclick="addEntry()">Зберегти підхід</button>
+  </div>
+
+  <div class="card" id="today-card" style="display:none">
+    <div class="card-title">Сьогодні <span class="badge" id="today-count">0</span></div>
+    <div class="stats-row" id="today-stats"></div>
+    <div id="today-list"></div>
+  </div>
+
+  <div class="empty" id="today-empty">
+    <span class="empty-icon">💪</span>
+    Ще немає записів на сьогодні.<br/>
+    <strong>Починай тренування!</strong>
+  </div>
+</div>
+
+<div class="view" id="view-progress">
+  <div class="card">
+    <div class="card-title">Аналіз прогресу</div>
+    <label class="field-label">Вправа</label>
+    <select id="prog-select" onchange="renderProgress()"></select>
+    <div class="stats-row" id="prog-stats"></div>
+    <div id="chart-label-wrap" style="display:none">
+      <label class="field-label">Максимальна вага по тренуваннях (кг)</label>
+      <div class="chart-wrap"><canvas id="prog-chart" height="110"></canvas></div>
+      <div class="chart-dates" id="chart-dates"></div>
+    </div>
+    <div id="prog-list"></div>
+    <div class="empty" id="prog-empty" style="display:none">
+      <span class="empty-icon">📊</span>
+      Немає даних по цій вправі.<br/>
+      <strong>Додай перше тренування!</strong>
+    </div>
+  </div>
+</div>
+
+<div class="view" id="view-history">
+  <div class="empty" id="hist-empty" style="display:none">
+    <span class="empty-icon">🗂</span>
+    Немає записів.<br/>
+    <strong>Почни тренуватись!</strong>
+  </div>
+  <div id="hist-list"></div>
+</div>
+
+<script>
+const STORAGE_KEY = 'fittrack_v1';
+const BASE_EXERCISES = [
+  "Жим лежачи","Присідання","Станова тяга","Жим стоячи",
+  "Підтягування","Тяга штанги в нахилі","Жим гантелей",
+  "Розгинання на трицепс","Підйом на біцепс","Планка",
+  "Випади","Тяга верхнього блоку","Жим ногами","Гіперекстензія"
+];
+
+let customExercises = JSON.parse(localStorage.getItem('fittrack_custom') || '[]');
+let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+const today = new Date().toISOString().slice(0,10);
+
+function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+function saveCustom() { localStorage.setItem('fittrack_custom', JSON.stringify(customExercises)); }
+function allExercises() {
+  const extra = Object.values(data).flat().map(e=>e.exercise)
+    .filter(e=>!BASE_EXERCISES.includes(e)&&!customExercises.includes(e));
+  return [...BASE_EXERCISES, ...customExercises, ...extra];
+}
+
+document.getElementById('header-date').textContent =
+  new Date().toLocaleDateString('uk-UA',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+function calcStreak() {
+  let streak=0, cur=new Date();
+  for(let i=0;i<365;i++){
+    const d=cur.toISOString().slice(0,10);
+    if(data[d]) streak++;
+    else if(i>0) break;
+    cur.setDate(cur.getDate()-1);
+  }
+  return streak;
+}
+document.getElementById('streak-num').textContent = calcStreak();
+
+function buildSelects() {
+  const exes=allExercises();
+  ['ex-select','prog-select'].forEach(id=>{
+    const sel=document.getElementById(id), cur=sel.value;
+    sel.innerHTML=exes.map(e=>`<option value="${e}">${e}</option>`).join('');
+    if(cur&&exes.includes(cur)) sel.value=cur;
+  });
+}
+
+function showView(v,btn) {
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  btn.classList.add('active');
+  if(v==='progress') renderProgress();
+  if(v==='history') renderHistory();
+}
+
+function updatePreview() {
+  const w=parseFloat(document.getElementById('inp-weight').value);
+  const s=parseInt(document.getElementById('inp-sets').value);
+  const r=parseInt(document.getElementById('inp-reps').value);
+  const el=document.getElementById('vol-preview');
+  if(w&&s&&r) el.innerHTML=`Загальний об'єм: <strong>${(w*s*r).toFixed(0)} кг</strong>`;
+  else el.textContent="Введи дані для розрахунку об'єму";
+}
+
+function showCustom() { document.getElementById('custom-area').style.display='block'; }
+function hideCustom() { document.getElementById('custom-area').style.display='none'; }
+function addCustomEx() {
+  const v=document.getElementById('custom-input').value.trim();
+  if(!v) return;
+  if(!customExercises.includes(v)&&!BASE_EXERCISES.includes(v)){ customExercises.push(v); saveCustom(); buildSelects(); }
+  document.getElementById('ex-select').value=v;
+  document.getElementById('custom-input').value='';
+  hideCustom();
+}
+
+function addEntry() {
+  const ex=document.getElementById('ex-select').value;
+  const w=parseFloat(document.getElementById('inp-weight').value);
+  const s=parseInt(document.getElementById('inp-sets').value);
+  const r=parseInt(document.getElementById('inp-reps').value);
+  if(!ex||!w||!s||!r){ alert('Заповни всі поля!'); return; }
+  if(!data[today]) data[today]=[];
+  data[today].push({ exercise:ex, weight:w, sets:s, reps:r, volume:w*s*r,
+    time:new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'}) });
+  saveData();
+  document.getElementById('inp-weight').value='';
+  document.getElementById('inp-sets').value='';
+  document.getElementById('inp-reps').value='';
+  document.getElementById('vol-preview').textContent="Введи дані для розрахунку об'єму";
+  const btn=document.getElementById('add-btn');
+  btn.textContent='✓ Збережено!'; btn.classList.add('saved');
+  setTimeout(()=>{ btn.textContent='Зберегти підхід'; btn.classList.remove('saved'); },1800);
+  document.getElementById('streak-num').textContent=calcStreak();
+  renderToday();
+}
+
+function deleteEntry(date,idx) {
+  data[date].splice(idx,1);
+  if(!data[date].length) delete data[date];
+  saveData(); renderToday(); renderHistory();
+  document.getElementById('streak-num').textContent=calcStreak();
+}
+
+function getPRs() {
+  const prs={};
+  Object.values(data).flat().forEach(e=>{ if(!prs[e.exercise]||e.weight>prs[e.exercise]) prs[e.exercise]=e.weight; });
+  return prs;
+}
+
+function renderToday() {
+  const entries=data[today]||[];
+  const card=document.getElementById('today-card'), empty=document.getElementById('today-empty');
+  if(!entries.length){ card.style.display='none'; empty.style.display='block'; return; }
+  card.style.display='block'; empty.style.display='none';
+  document.getElementById('today-count').textContent=entries.length;
+  const totalVol=entries.reduce((s,e)=>s+e.volume,0);
+  const uniqEx=[...new Set(entries.map(e=>e.exercise))].length;
+  const maxW=Math.max(...entries.map(e=>e.weight));
+  document.getElementById('today-stats').innerHTML=`
+    <div class="stat-box"><div class="stat-val">${entries.length}</div><div class="stat-lbl">Підходи</div></div>
+    <div class="stat-box"><div class="stat-val">${uniqEx}</div><div class="stat-lbl">Вправи</div></div>
+    <div class="stat-box"><div class="stat-val">${totalVol.toFixed(0)}</div><div class="stat-lbl">кг об'єм</div></div>
+    <div class="stat-box"><div class="stat-val">${maxW}</div><div class="stat-lbl">макс кг</div></div>`;
+  const prs=getPRs();
+  document.getElementById('today-list').innerHTML=entries.map((e,i)=>{
+    const isPR=prs[e.exercise]===e.weight;
+    return `<div class="entry-row">
+      <div>
+        <div class="entry-name">${e.exercise}${isPR?'<span class="pr-tag">🏆 PR</span>':''}</div>
+        <div class="entry-sub">${e.weight}кг · ${e.sets}×${e.reps} · об'єм ${e.volume.toFixed(0)}кг · ${e.time}</div>
+      </div>
+      <button class="btn-del" onclick="deleteEntry('${today}',${i})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function getProgressData(exercise) {
+  return Object.entries(data)
+    .filter(([,ents])=>ents.some(e=>e.exercise===exercise))
+    .map(([date,ents])=>{
+      const ex=ents.filter(e=>e.exercise===exercise);
+      return { date, maxWeight:Math.max(...ex.map(e=>e.weight)), totalVolume:ex.reduce((s,e)=>s+e.volume,0) };
+    })
+    .sort((a,b)=>a.date.localeCompare(b.date)).slice(-12);
+}
+
+function renderProgress() {
+  const exercise=document.getElementById('prog-select').value;
+  const pts=getProgressData(exercise);
+  const empty=document.getElementById('prog-empty'), list=document.getElementById('prog-list');
+  const statsEl=document.getElementById('prog-stats'), chartWrap=document.getElementById('chart-label-wrap');
+  if(!pts.length){ statsEl.innerHTML=''; list.innerHTML=''; chartWrap.style.display='none';
+    empty.style.display='block'; clearChart(); return; }
+  empty.style.display='none'; chartWrap.style.display='block';
+  const maxW=Math.max(...pts.map(p=>p.maxWeight));
+  const diff=pts.length>=2?pts[pts.length-1].maxWeight-pts[0].maxWeight:0;
+  statsEl.innerHTML=`
+    <div class="stat-box"><div class="stat-val">${maxW}кг</div><div class="stat-lbl">Макс. вага</div></div>
+    <div class="stat-box"><div class="stat-val">${pts.length}</div><div class="stat-lbl">Тренувань</div></div>
+    <div class="stat-box"><div class="stat-val ${diff>=0?'diff-pos':'diff-neg'}">${diff>=0?'+':''}${diff}кг</div><div class="stat-lbl">Приріст</div></div>`;
+  drawChart(pts);
+  document.getElementById('chart-dates').innerHTML=pts.map(p=>{
+    const d=new Date(p.date); return `<span>${d.getDate()}/${d.getMonth()+1}</span>`;
+  }).join('');
+  list.innerHTML='<div class="divider"></div><div class="card-title" style="margin-bottom:12px">Деталі по сесіях</div>'+
+    pts.slice().reverse().map(p=>{
+      const d=new Date(p.date).toLocaleDateString('uk-UA',{day:'numeric',month:'short',year:'numeric'});
+      return `<div class="entry-row">
+        <div><div class="entry-name" style="font-size:13px">${d}</div>
+        <div class="entry-sub">Об'єм сесії: ${p.totalVolume.toFixed(0)} кг</div></div>
+        <div style="font-size:18px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent">${p.maxWeight} кг</div>
+      </div>`;
+    }).join('');
+}
+
+function clearChart() {
+  const c=document.getElementById('prog-chart');
+  c.getContext('2d').clearRect(0,0,c.width,c.height);
+}
+
+function drawChart(pts) {
+  const canvas=document.getElementById('prog-chart');
+  canvas.width=canvas.offsetWidth||340; canvas.height=110;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const vals=pts.map(p=>p.maxWeight);
+  const min=Math.min(...vals), max=Math.max(...vals), range=max-min||1;
+  const W=canvas.width, H=canvas.height, px=16, py=18;
+  const xs=pts.map((_,i)=>px+(i/(pts.length-1))*(W-2*px));
+  const ys=vals.map(v=>H-py-((v-min)/range)*(H-2*py));
+
+  ctx.strokeStyle='rgba(79,142,247,0.07)'; ctx.lineWidth=1;
+  [0.25,0.5,0.75].forEach(t=>{
+    const y=py+(1-t)*(H-2*py);
+    ctx.beginPath(); ctx.moveTo(px,y); ctx.lineTo(W-px,y); ctx.stroke();
+  });
+
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(79,142,247,0.3)');
+  grad.addColorStop(0.5,'rgba(123,94,167,0.15)');
+  grad.addColorStop(1,'rgba(79,142,247,0)');
+  ctx.beginPath(); ctx.moveTo(xs[0],ys[0]);
+  for(let i=1;i<xs.length;i++){
+    const mx=(xs[i-1]+xs[i])/2;
+    ctx.bezierCurveTo(mx,ys[i-1],mx,ys[i],xs[i],ys[i]);
+  }
+  ctx.lineTo(xs[xs.length-1],H); ctx.lineTo(xs[0],H); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
+
+  const lineGrad=ctx.createLinearGradient(0,0,W,0);
+  lineGrad.addColorStop(0,'#4f8ef7'); lineGrad.addColorStop(1,'#7b5ea7');
+  ctx.beginPath(); ctx.moveTo(xs[0],ys[0]);
+  for(let i=1;i<xs.length;i++){
+    const mx=(xs[i-1]+xs[i])/2;
+    ctx.bezierCurveTo(mx,ys[i-1],mx,ys[i],xs[i],ys[i]);
+  }
+  ctx.strokeStyle=lineGrad; ctx.lineWidth=2.5; ctx.stroke();
+
+  xs.forEach((x,i)=>{
+    ctx.beginPath(); ctx.arc(x,ys[i],5,0,Math.PI*2);
+    ctx.fillStyle='#fff'; ctx.fill();
+    ctx.strokeStyle='#4f8ef7'; ctx.lineWidth=2.5; ctx.stroke();
+    ctx.fillStyle='rgba(240,244,255,0.9)';
+    ctx.font='bold 10px Outfit,sans-serif'; ctx.textAlign='center';
+    ctx.fillText(vals[i]+'кг', x, ys[i]-11<py ? ys[i]+18 : ys[i]-11);
+  });
+}
+
+function renderHistory() {
+  const dates=Object.keys(data).sort((a,b)=>b.localeCompare(a));
+  const empty=document.getElementById('hist-empty'), list=document.getElementById('hist-list');
+  if(!dates.length){ empty.style.display='block'; list.innerHTML=''; return; }
+  empty.style.display='none';
+  const prs=getPRs();
+  list.innerHTML=dates.map(date=>{
+    const entries=data[date];
+    const totalVol=entries.reduce((s,e)=>s+e.volume,0).toFixed(0);
+    const exs=[...new Set(entries.map(e=>e.exercise))].join(' · ');
+    const rows=entries.map((e,i)=>{
+      const isPR=prs[e.exercise]===e.weight;
+      return `<div class="entry-row">
+        <div>
+          <span class="entry-name" style="font-size:13px">${e.exercise}${isPR?'<span class="pr-tag">🏆 PR</span>':''}</span>
+          <div class="entry-sub">${e.weight}кг · ${e.sets}×${e.reps} · ${e.volume.toFixed(0)}кг об'єм</div>
+        </div>
+        <button class="btn-del" onclick="deleteEntry('${date}',${i})">✕</button>
+      </div>`;
+    }).join('');
+    const d=new Date(date).toLocaleDateString('uk-UA',{weekday:'long',day:'numeric',month:'long'});
+    return `<div class="card">
+      <div class="hist-head"><span class="hist-date">${d}</span><span class="hist-vol">∑ ${totalVol} кг</span></div>
+      <div class="hist-exlist">${exs}</div>${rows}
+    </div>`;
+  }).join('');
+}
+
+window.addEventListener('resize',()=>{
+  const pts=getProgressData(document.getElementById('prog-select').value);
+  if(pts.length) drawChart(pts);
+});
+
+buildSelects();
+renderToday();
+renderProgress();
+renderHistory();
+</script>
+</body>
+</html>
