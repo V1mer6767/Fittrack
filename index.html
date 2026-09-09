@@ -2,351 +2,330 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"/>
 <title>FitTrack — Трекер тренувань</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap');
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 :root {
-  --blue1: #0a0f2e;
-  --blue2: #0d1b4b;
-  --accent: #4f8ef7;
-  --accent2: #7b5ea7;
-  --glow: rgba(79,142,247,0.35);
-  --grad: linear-gradient(135deg, #4f8ef7 0%, #7b5ea7 100%);
-  --grad-soft: linear-gradient(135deg, rgba(79,142,247,0.15) 0%, rgba(123,94,167,0.15) 100%);
-  --text: #f0f4ff;
-  --muted: #5a6a8a;
-  --card: rgba(255,255,255,0.04);
-  --border: rgba(79,142,247,0.18);
-  --red: #ff5572;
-  --green: #2ecc8a;
+  --bg: #15171c;
+  --surface: #1c1f26;
+  --surface2: #23262f;
+  --surface3: #2b2f3a;
+  --accent: #ff5a36;
+  --accent-dim: rgba(255,90,54,0.14);
+  --text: #f2f0ec;
+  --dim: #888d99;
+  --line: rgba(255,255,255,0.08);
+  --good: #5ed99b;
+  --bad: #ff6767;
+  --gold: #ffc84a;
+  --display: 'Bebas Neue', sans-serif;
+  --body: 'Manrope', sans-serif;
 }
 
+html, body { height: 100%; overscroll-behavior: none; }
 body {
-  min-height: 100vh;
-  background: var(--blue1);
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(79,142,247,0.18) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(123,94,167,0.12) 0%, transparent 60%);
-  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  font-family: var(--body);
   color: var(--text);
-  padding-bottom: 100px;
+  padding-bottom: 84px;
+  min-height: 100vh;
 }
 
 header {
-  padding: 36px 24px 20px;
-  position: relative;
-  overflow: hidden;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 20px 16px;
 }
-header::before {
-  content: '';
-  position: absolute;
-  top: -40px; left: -40px; right: -40px;
-  height: 160px;
-  background: linear-gradient(180deg, rgba(79,142,247,0.1) 0%, transparent 100%);
-  pointer-events: none;
+.logo { font-family: var(--display); font-size: 28px; letter-spacing: 1px; line-height: 1; }
+.logo em { color: var(--accent); font-style: normal; }
+.header-date { font-size: 12px; color: var(--dim); margin-top: 4px; text-transform: capitalize; }
+.streak {
+  display: flex; align-items: baseline; gap: 5px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 12px; padding: 8px 14px;
 }
-.header-top { display: flex; justify-content: space-between; align-items: flex-start; }
-.logo { font-size: 28px; font-weight: 900; letter-spacing: -0.5px; }
-.logo span { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.header-date { font-size: 12px; color: var(--muted); margin-top: 6px; }
-.streak-badge {
-  background: var(--grad-soft);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 8px 14px;
-  text-align: center;
-  font-size: 11px;
-  color: var(--accent);
-  font-weight: 600;
-}
-.streak-badge strong { display: block; font-size: 22px; font-weight: 800; line-height: 1; }
+.streak b { font-family: var(--display); font-size: 24px; color: var(--accent); line-height: 1; }
+.streak span { font-size: 11px; color: var(--dim); }
 
-nav {
-  display: flex;
-  gap: 8px;
-  padding: 0 24px 20px;
-}
-nav button {
-  flex: 1;
-  padding: 12px 6px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .25s;
-  font-family: 'Outfit', sans-serif;
-}
-nav button.active {
-  background: var(--grad);
-  border-color: transparent;
-  color: #fff;
-  box-shadow: 0 4px 20px rgba(79,142,247,0.35);
-}
-
-.view { display: none; padding: 0 24px; }
+.view { display: none; padding: 0 20px 20px; }
 .view.active { display: block; }
 
 .card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 20px;
-  margin-bottom: 16px;
-  backdrop-filter: blur(10px);
-}
-.card-title {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--accent);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 18px;
   margin-bottom: 14px;
 }
+.card-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.card-title span:first-child { font-size: 12px; font-weight: 700; color: var(--dim); }
 
-.field-label {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-  margin-bottom: 7px;
+.chip-row {
+  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 4px;
+  scrollbar-width: none;
 }
-select, input[type=number], input[type=text] {
-  width: 100%;
-  padding: 13px 16px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  color: var(--text);
-  font-size: 15px;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 500;
+.chip-row::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0;
+  background: var(--surface2); border: 1px solid var(--line);
+  border-radius: 999px; padding: 10px 16px;
+  font-size: 13px; font-weight: 700; color: var(--text);
+  cursor: pointer; white-space: nowrap;
+}
+.chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip.ghost { background: none; border: 1px dashed var(--line); color: var(--dim); }
+
+/* ---------- routine checklist ---------- */
+.check-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 4px; border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+.check-row:last-child { border-bottom: none; }
+.check-dot {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid var(--line); display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: transparent;
+}
+.check-row.done .check-dot { background: var(--good); border-color: var(--good); color: #0c1f14; }
+.check-info { flex: 1; min-width: 0; }
+.check-name { font-size: 14px; font-weight: 700; }
+.check-sub { font-size: 11px; color: var(--dim); margin-top: 2px; }
+.check-row.done .check-name { color: var(--dim); }
+.check-arrow { color: var(--dim); font-size: 14px; flex-shrink: 0; }
+
+.routine-empty { text-align: center; padding: 20px 0 8px; color: var(--dim); font-size: 13px; line-height: 1.8; }
+
+/* ---------- bottom sheets ---------- */
+.sheet-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 40;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 41;
+  background: var(--surface); border-radius: 22px 22px 0 0;
+  padding: 10px 20px calc(20px + env(safe-area-inset-bottom));
+  max-height: 82vh; overflow-y: auto;
+  transform: translateY(100%); transition: transform .25s cubic-bezier(.32,.72,0,1);
+}
+.sheet.open { transform: translateY(0); }
+.sheet-handle { width: 36px; height: 4px; background: var(--line); border-radius: 3px; margin: 6px auto 16px; }
+.sheet-title { font-family: var(--display); font-size: 22px; letter-spacing: .5px; margin-bottom: 16px; }
+#pick-backdrop { z-index: 42; }
+#pick-sheet { z-index: 43; }
+.sheet-close { position: absolute; right: 16px; top: 16px; background: var(--surface2); border: none; color: var(--dim); width: 32px; height: 32px; border-radius: 50%; font-size: 15px; cursor: pointer; }
+
+/* ---------- quick log sheet ---------- */
+.ql-exname { font-family: var(--display); font-size: 26px; letter-spacing: .5px; margin-bottom: 4px; }
+.ql-last { font-size: 12px; color: var(--dim); margin-bottom: 18px; }
+
+.stepper-block { margin-bottom: 14px; }
+.stepper-label { font-size: 11px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.stepper { display: flex; align-items: stretch; gap: 8px; }
+.stepper button {
+  width: 46px; flex-shrink: 0;
+  background: var(--surface2); border: 1px solid var(--line); border-radius: 12px;
+  color: var(--accent); font-size: 20px; font-weight: 700;
+  cursor: pointer; font-family: var(--body);
+}
+.stepper button:active { background: var(--accent-dim); }
+.stepper input {
+  flex: 1; min-width: 0; text-align: center;
+  background: var(--surface2); border: 1px solid var(--line); border-radius: 12px;
+  color: var(--text); font-family: var(--display); font-size: 26px; letter-spacing: 1px;
   outline: none;
-  transition: border .2s, box-shadow .2s;
 }
-select:focus, input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(79,142,247,0.15);
+.stepper input:focus { border-color: var(--accent); }
+.stepper-row2 { display: flex; gap: 12px; }
+.stepper-row2 > div { flex: 1; min-width: 0; }
+.stepper-row2 .stepper button { width: 38px; }
+.stepper-row2 .stepper input { font-size: 22px; }
+
+.volume-line { text-align: center; font-size: 13px; color: var(--dim); margin: 14px 0; }
+.volume-line b { color: var(--text); font-weight: 700; }
+
+.btn-save {
+  width: 100%; padding: 17px;
+  background: var(--accent); border: none; border-radius: 14px;
+  color: #fff; font-size: 15px; font-weight: 800; font-family: var(--body);
+  cursor: pointer; letter-spacing: .3px;
 }
-select { margin-bottom: 12px; appearance: none; cursor: pointer; }
-
-.row3 { display: flex; gap: 10px; margin-bottom: 14px; }
-.row3 > div { flex: 1; }
-
-.volume-pill {
-  display: block;
-  background: var(--grad-soft);
-  border: 1px solid var(--border);
-  border-radius: 30px;
-  padding: 7px 18px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
-  margin-bottom: 14px;
-  text-align: center;
-  width: 100%;
+.btn-save.saved { background: var(--good); }
+.btn-ghost-full {
+  width: 100%; padding: 14px; margin-top: 10px;
+  background: none; border: 1px solid var(--line); border-radius: 14px;
+  color: var(--dim); font-size: 13px; font-weight: 700; font-family: var(--body); cursor: pointer;
 }
 
-.btn-main {
-  width: 100%;
-  padding: 16px;
-  background: var(--grad);
-  border: none;
-  border-radius: 14px;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all .3s;
-  font-family: 'Outfit', sans-serif;
-  box-shadow: 0 4px 20px rgba(79,142,247,0.3);
+/* ---------- picker sheet ---------- */
+.search-input {
+  width: 100%; padding: 13px 14px; margin-bottom: 12px;
+  background: var(--surface2); border: 1px solid var(--line); border-radius: 12px;
+  color: var(--text); font-size: 14px; font-family: var(--body);
 }
-.btn-main:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(79,142,247,0.45); }
-.btn-main.saved { background: linear-gradient(135deg, #2ecc8a, #1a9e6a); box-shadow: 0 4px 20px rgba(46,204,138,0.3); }
+.pick-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 4px; border-bottom: 1px solid var(--line); cursor: pointer;
+}
+.pick-row:last-child { border-bottom: none; }
+.pick-row span { font-size: 14px; font-weight: 600; }
+.pick-row.add-mode span { color: var(--accent); }
+.pick-empty { text-align: center; padding: 20px 0; color: var(--dim); font-size: 13px; }
 
-.btn-outline {
-  width: 100%;
-  padding: 11px;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .2s;
-  font-family: 'Outfit', sans-serif;
-  margin-bottom: 14px;
+/* ---------- routine editor ---------- */
+.re-name-input {
+  width: 100%; padding: 13px 14px; margin-bottom: 16px;
+  background: var(--surface2); border: 1px solid var(--line); border-radius: 12px;
+  color: var(--text); font-size: 16px; font-family: var(--display); letter-spacing: .5px;
 }
-.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.re-ex-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 4px; border-bottom: 1px solid var(--line);
+}
+.re-ex-row:last-child { border-bottom: none; }
+.re-ex-row span { font-size: 14px; font-weight: 600; }
+.re-del { background: none; border: none; color: var(--dim); font-size: 15px; cursor: pointer; padding: 4px 8px; }
+.btn-danger-link { background: none; border: none; color: var(--bad); font-size: 12px; font-weight: 700; padding: 12px 0 2px; cursor: pointer; font-family: var(--body); }
 
-.btn-xs {
-  padding: 9px 14px;
-  background: var(--grad-soft);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: 'Outfit', sans-serif;
-  transition: all .2s;
+/* ---------- rest timer ---------- */
+.rest-timer {
+  position: fixed; left: 16px; right: 16px; bottom: 78px; z-index: 30;
+  background: var(--surface3); border: 1px solid var(--accent);
+  border-radius: 16px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  opacity: 0; pointer-events: none;
+  transform: translateY(30px);
+  transition: transform .25s cubic-bezier(.32,.72,0,1), opacity .2s;
 }
-.btn-xs.cancel { background: rgba(255,85,114,0.08); border-color: rgba(255,85,114,0.25); color: var(--red); }
+.rest-timer.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.rest-timer .rt-time { font-family: var(--display); font-size: 30px; color: var(--accent); min-width: 60px; }
+.rest-timer .rt-label { font-size: 11px; color: var(--dim); font-weight: 700; text-transform: uppercase; }
+.rest-timer .rt-btns { margin-left: auto; display: flex; gap: 8px; }
+.rt-btn { background: var(--surface2); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--body); }
+.rt-x { background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer; padding: 4px; }
 
-.stats-row { display: flex; gap: 10px; margin-bottom: 16px; }
-.stat-box {
-  flex: 1;
-  background: var(--grad-soft);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 14px 8px;
-  text-align: center;
-}
-.stat-val { font-size: 22px; font-weight: 800; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
-.stat-lbl { font-size: 9px; color: var(--muted); font-weight: 600; text-transform: uppercase; margin-top: 4px; }
+.stats-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.stat-box { flex: 1; background: var(--surface2); border-radius: 12px; padding: 12px 6px; text-align: center; }
+.stat-val { font-family: var(--display); font-size: 22px; color: var(--text); line-height: 1; }
+.stat-lbl { font-size: 9px; color: var(--dim); font-weight: 700; text-transform: uppercase; margin-top: 4px; letter-spacing: .3px; }
 
 .entry-row {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding: 11px 0; border-bottom: 1px solid var(--line);
 }
 .entry-row:last-child { border-bottom: none; }
-.entry-name { font-size: 14px; font-weight: 600; }
-.entry-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
-.btn-del {
-  background: rgba(255,85,114,0.08);
-  border: 1px solid rgba(255,85,114,0.2);
-  border-radius: 8px; color: var(--red);
-  cursor: pointer; font-size: 14px;
-  padding: 5px 9px; opacity: 0.7;
-  transition: opacity .2s; flex-shrink: 0;
-}
-.btn-del:hover { opacity: 1; }
+.entry-name { font-size: 14px; font-weight: 700; }
+.entry-sub { font-size: 11px; color: var(--dim); margin-top: 2px; }
+.btn-del { background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer; padding: 4px 8px; flex-shrink: 0; }
+.pr-tag { display: inline-block; background: var(--gold); color: #2a2000; border-radius: 6px; padding: 1px 7px; font-size: 10px; font-weight: 800; margin-left: 7px; }
+.badge { display: inline-block; background: var(--accent-dim); color: var(--accent); border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 800; margin-left: 8px; }
 
-.badge {
-  display: inline-block; background: var(--grad);
-  border-radius: 20px; padding: 2px 10px;
-  font-size: 11px; font-weight: 700; color: #fff; margin-left: 8px;
-}
-.pr-tag {
-  display: inline-block;
-  background: rgba(255,200,50,0.12);
-  border: 1px solid rgba(255,200,50,0.35);
-  border-radius: 6px; padding: 1px 8px;
-  font-size: 10px; font-weight: 700; color: #ffc832; margin-left: 8px;
-}
-
-.empty {
-  text-align: center; padding: 60px 0 40px;
-  color: var(--muted); font-size: 14px; line-height: 2;
-}
-.empty-icon { font-size: 48px; display: block; margin-bottom: 12px; }
-.empty strong { color: var(--accent); font-weight: 600; display: block; }
+.empty { text-align: center; padding: 50px 0 30px; color: var(--dim); font-size: 14px; line-height: 1.9; }
+.empty-icon { font-size: 40px; display: block; margin-bottom: 10px; }
+.empty strong { color: var(--text); display: block; }
 
 canvas { width: 100% !important; }
-.chart-wrap { margin: 12px 0 6px; border-radius: 12px; overflow: hidden; }
-.chart-dates { display: flex; justify-content: space-between; margin-top: 4px; }
-.chart-dates span { font-size: 9px; color: var(--muted); }
+.chart-wrap { margin: 10px 0 4px; }
+.chart-dates { display: flex; justify-content: space-between; margin-top: 2px; }
+.chart-dates span { font-size: 9px; color: var(--dim); }
+.diff-pos { color: var(--good) !important; }
+.diff-neg { color: var(--bad) !important; }
+.divider { height: 1px; background: var(--line); margin: 12px 0; }
 
-.custom-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
-.custom-row input { flex: 1; margin-bottom: 0; }
+.hist-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.hist-date { font-family: var(--display); font-size: 18px; letter-spacing: .3px; text-transform: capitalize; }
+.hist-vol { font-size: 12px; font-weight: 700; color: var(--accent); }
+.hist-exlist { font-size: 11px; color: var(--dim); margin-bottom: 10px; line-height: 1.6; }
 
-.hist-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.hist-date { font-size: 14px; font-weight: 700; }
-.hist-vol { font-size: 12px; font-weight: 700; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.hist-exlist { font-size: 11px; color: var(--muted); margin-bottom: 12px; line-height: 1.7; }
+.progress-picker-btn {
+  width: 100%; padding: 13px 14px; margin-bottom: 12px;
+  background: var(--surface2); border: 1px solid var(--line); border-radius: 12px;
+  color: var(--text); font-size: 14px; font-family: var(--body); font-weight: 700;
+  display: flex; align-items: center; justify-content: space-between; cursor: pointer;
+}
+.progress-picker-btn span:last-child { color: var(--dim); font-size: 12px; }
 
-.diff-pos { color: var(--green); }
-.diff-neg { color: var(--red); }
-.divider { height: 1px; background: var(--border); margin: 14px 0; }
+nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  display: flex; background: var(--surface);
+  border-top: 1px solid var(--line);
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+}
+nav button {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: none; border: none; color: var(--dim);
+  font-size: 10px; font-weight: 700; font-family: var(--body);
+  padding: 6px 0; cursor: pointer;
+}
+nav button .nav-icon { font-size: 20px; }
+nav button.active { color: var(--accent); }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="header-top">
-    <div>
-      <div class="logo">🏋️ <span>FitTrack</span></div>
-      <div class="header-date" id="header-date"></div>
-    </div>
-    <div class="streak-badge">
-      <strong id="streak-num">0</strong>
-      🔥 днів
-    </div>
+  <div>
+    <div class="logo">FIT<em>TRACK</em></div>
+    <div class="header-date" id="header-date"></div>
   </div>
+  <div class="streak"><b id="streak-num">0</b><span>🔥 днів</span></div>
 </header>
 
-<nav>
-  <button class="active" onclick="showView('log',this)">📋 Запис</button>
-  <button onclick="showView('progress',this)">📈 Прогрес</button>
-  <button onclick="showView('history',this)">🗂 Історія</button>
-</nav>
-
 <div class="view active" id="view-log">
+
   <div class="card">
-    <div class="card-title">Нове тренування</div>
-    <label class="field-label">Вправа</label>
-    <select id="ex-select"></select>
-    <div id="custom-area" style="display:none">
-      <div class="custom-row">
-        <input type="text" id="custom-input" placeholder="Назва вправи" onkeydown="if(event.key==='Enter')addCustomEx()"/>
-        <button class="btn-xs" onclick="addCustomEx()">✓</button>
-        <button class="btn-xs cancel" onclick="hideCustom()">✕</button>
-      </div>
+    <div class="card-title"><span>Програма</span></div>
+    <div class="chip-row" id="routine-chip-row"></div>
+  </div>
+
+  <div class="card" id="routine-checklist-card" style="display:none">
+    <div class="card-title">
+      <span id="routine-checklist-title">—</span>
+      <button class="btn-link-icon" onclick="openRoutineEditor(activeRoutineId)" style="background:none;border:none;color:var(--dim);font-size:15px;cursor:pointer;">✏️</button>
     </div>
-    <button class="btn-outline" onclick="showCustom()">+ Додати свою вправу</button>
-    <div class="row3">
-      <div>
-        <label class="field-label">Вага (кг)</label>
-        <input type="number" id="inp-weight" placeholder="80" min="0" step="0.5" oninput="updatePreview()"/>
-      </div>
-      <div>
-        <label class="field-label">Підходи</label>
-        <input type="number" id="inp-sets" placeholder="4" min="1" oninput="updatePreview()"/>
-      </div>
-      <div>
-        <label class="field-label">Повтори</label>
-        <input type="number" id="inp-reps" placeholder="10" min="1" oninput="updatePreview()"/>
-      </div>
-    </div>
-    <div class="volume-pill" id="vol-preview">Введи дані для розрахунку об'єму</div>
-    <button class="btn-main" id="add-btn" onclick="addEntry()">Зберегти підхід</button>
+    <div id="routine-checklist"></div>
+  </div>
+
+  <div class="card" id="freeform-card">
+    <div class="card-title"><span>Вправа</span></div>
+    <div class="chip-row" id="recent-chip-row"></div>
+    <button class="chip ghost" style="width:100%; text-align:center; margin-top:2px;" onclick="openExercisePicker(startLogFor)">🔍 Усі вправи</button>
   </div>
 
   <div class="card" id="today-card" style="display:none">
-    <div class="card-title">Сьогодні <span class="badge" id="today-count">0</span></div>
+    <div class="card-title"><span>Сьогодні</span><span class="badge" id="today-count">0</span></div>
     <div class="stats-row" id="today-stats"></div>
     <div id="today-list"></div>
   </div>
 
   <div class="empty" id="today-empty">
     <span class="empty-icon">💪</span>
-    Ще немає записів на сьогодні.<br/>
+    Ще немає записів на сьогодні.
     <strong>Починай тренування!</strong>
   </div>
 </div>
 
 <div class="view" id="view-progress">
   <div class="card">
-    <div class="card-title">Аналіз прогресу</div>
-    <label class="field-label">Вправа</label>
-    <select id="prog-select" onchange="renderProgress()"></select>
+    <div class="card-title"><span>Аналіз прогресу</span></div>
+    <button class="progress-picker-btn" id="prog-picker-btn" onclick="openExercisePicker(selectProgressExercise, {noAdd:true})">
+      <span id="prog-picker-label">Обери вправу</span><span>▾</span>
+    </button>
     <div class="stats-row" id="prog-stats"></div>
     <div id="chart-label-wrap" style="display:none">
-      <label class="field-label">Максимальна вага по тренуваннях (кг)</label>
+      <div class="stepper-label">Максимальна вага по тренуваннях, кг</div>
       <div class="chart-wrap"><canvas id="prog-chart" height="110"></canvas></div>
       <div class="chart-dates" id="chart-dates"></div>
     </div>
     <div id="prog-list"></div>
     <div class="empty" id="prog-empty" style="display:none">
       <span class="empty-icon">📊</span>
-      Немає даних по цій вправі.<br/>
+      Немає даних по цій вправі.
       <strong>Додай перше тренування!</strong>
     </div>
   </div>
@@ -355,14 +334,98 @@ canvas { width: 100% !important; }
 <div class="view" id="view-history">
   <div class="empty" id="hist-empty" style="display:none">
     <span class="empty-icon">🗂</span>
-    Немає записів.<br/>
+    Немає записів.
     <strong>Почни тренуватись!</strong>
   </div>
   <div id="hist-list"></div>
 </div>
 
+<nav>
+  <button class="active" onclick="showView('log',this)"><span class="nav-icon">📋</span>Запис</button>
+  <button onclick="showView('progress',this)"><span class="nav-icon">📈</span>Прогрес</button>
+  <button onclick="showView('history',this)"><span class="nav-icon">🗂</span>Історія</button>
+</nav>
+
+<!-- Quick log sheet -->
+<div class="sheet-backdrop" id="ql-backdrop" onclick="closeSheet('ql')"></div>
+<div class="sheet" id="ql-sheet">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeSheet('ql')">✕</button>
+  <div class="ql-exname" id="ql-exname">—</div>
+  <div class="ql-last" id="ql-last"></div>
+
+  <div class="stepper-block">
+    <div class="stepper-label">Вага, кг</div>
+    <div class="stepper">
+      <button onclick="stepVal('weight',-2.5)">−</button>
+      <input type="number" id="inp-weight" inputmode="decimal" oninput="updatePreview()"/>
+      <button onclick="stepVal('weight',2.5)">+</button>
+    </div>
+  </div>
+
+  <div class="stepper-row2">
+    <div>
+      <div class="stepper-label">Підходи</div>
+      <div class="stepper">
+        <button onclick="stepVal('sets',-1)">−</button>
+        <input type="number" id="inp-sets" inputmode="numeric" oninput="updatePreview()"/>
+        <button onclick="stepVal('sets',1)">+</button>
+      </div>
+    </div>
+    <div>
+      <div class="stepper-label">Повтори</div>
+      <div class="stepper">
+        <button onclick="stepVal('reps',-1)">−</button>
+        <input type="number" id="inp-reps" inputmode="numeric" oninput="updatePreview()"/>
+        <button onclick="stepVal('reps',1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="volume-line" id="vol-preview">Об'єм з'явиться тут</div>
+  <button class="btn-save" id="add-btn" onclick="addEntry()">Зберегти підхід</button>
+</div>
+
+<!-- Exercise picker sheet -->
+<div class="sheet-backdrop" id="pick-backdrop" onclick="closeSheet('pick')"></div>
+<div class="sheet" id="pick-sheet">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeSheet('pick')">✕</button>
+  <div class="sheet-title" id="pick-title">Обери вправу</div>
+  <input type="text" class="search-input" id="pick-search" placeholder="Пошук..." oninput="renderPickerList()"/>
+  <div id="pick-list"></div>
+</div>
+
+<!-- Routine editor sheet -->
+<div class="sheet-backdrop" id="re-backdrop" onclick="closeSheet('re')"></div>
+<div class="sheet" id="re-sheet">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeSheet('re')">✕</button>
+  <div class="sheet-title" id="re-title">Нова програма</div>
+  <input type="text" class="re-name-input" id="re-name" placeholder="Назва програми (напр. Груди/Трицепс)"/>
+  <div class="stepper-label" style="margin-bottom:8px;">Вправи</div>
+  <div id="re-ex-list"></div>
+  <button class="chip ghost" style="width:100%; text-align:center; margin-top:10px;" onclick="openExercisePicker(addExerciseToRoutineDraft, {addMode:true})">+ Додати вправу</button>
+  <button class="btn-save" style="margin-top:16px;" onclick="saveRoutine()">Зберегти програму</button>
+  <button class="btn-danger-link" id="re-delete-btn" style="display:none" onclick="deleteRoutine()">Видалити програму</button>
+</div>
+
+<!-- Rest timer -->
+<div class="rest-timer" id="rest-timer">
+  <div>
+    <div class="rt-time" id="rt-time">1:30</div>
+    <div class="rt-label">Відпочинок</div>
+  </div>
+  <div class="rt-btns">
+    <button class="rt-btn" onclick="restTimerAdd(30)">+30с</button>
+    <button class="rt-x" onclick="closeRestTimer()">✕</button>
+  </div>
+</div>
+
 <script>
 const STORAGE_KEY = 'fittrack_v1';
+const ROUTINES_KEY = 'fittrack_routines';
+const ACTIVE_ROUTINE_KEY = 'fittrack_active_routine';
 const BASE_EXERCISES = [
   "Жим лежачи","Присідання","Станова тяга","Жим стоячи",
   "Підтягування","Тяга штанги в нахилі","Жим гантелей",
@@ -372,18 +435,38 @@ const BASE_EXERCISES = [
 
 let customExercises = JSON.parse(localStorage.getItem('fittrack_custom') || '[]');
 let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let routines = JSON.parse(localStorage.getItem(ROUTINES_KEY) || '[]');
+let activeRoutineId = localStorage.getItem(ACTIVE_ROUTINE_KEY) || null;
 const today = new Date().toISOString().slice(0,10);
+
+let currentLogExercise = null;
+let pickerCallback = null;
+let pickerOptions = {};
+let routineDraft = null; // {id, name, exercises} while editing in the sheet
+let restInterval = null;
 
 function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 function saveCustom() { localStorage.setItem('fittrack_custom', JSON.stringify(customExercises)); }
+function saveRoutines() { localStorage.setItem(ROUTINES_KEY, JSON.stringify(routines)); }
+function saveActiveRoutine() { localStorage.setItem(ACTIVE_ROUTINE_KEY, activeRoutineId || ''); }
+
 function allExercises() {
   const extra = Object.values(data).flat().map(e=>e.exercise)
     .filter(e=>!BASE_EXERCISES.includes(e)&&!customExercises.includes(e));
   return [...BASE_EXERCISES, ...customExercises, ...extra];
 }
+function recentExercises(limit) {
+  const seen = [];
+  Object.keys(data).sort((a,b)=>b.localeCompare(a)).forEach(date=>{
+    data[date].slice().reverse().forEach(e=>{
+      if(!seen.includes(e.exercise)) seen.push(e.exercise);
+    });
+  });
+  return seen.slice(0, limit);
+}
 
 document.getElementById('header-date').textContent =
-  new Date().toLocaleDateString('uk-UA',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  new Date().toLocaleDateString('uk-UA',{weekday:'long',day:'numeric',month:'long'});
 
 function calcStreak() {
   let streak=0, cur=new Date();
@@ -397,22 +480,199 @@ function calcStreak() {
 }
 document.getElementById('streak-num').textContent = calcStreak();
 
-function buildSelects() {
-  const exes=allExercises();
-  ['ex-select','prog-select'].forEach(id=>{
-    const sel=document.getElementById(id), cur=sel.value;
-    sel.innerHTML=exes.map(e=>`<option value="${e}">${e}</option>`).join('');
-    if(cur&&exes.includes(cur)) sel.value=cur;
-  });
+/* ---------- sheets (generic open/close) ---------- */
+function openSheet(name) {
+  document.getElementById(name+'-backdrop').classList.add('open');
+  document.getElementById(name+'-sheet').classList.add('open');
+}
+function closeSheet(name) {
+  document.getElementById(name+'-backdrop').classList.remove('open');
+  document.getElementById(name+'-sheet').classList.remove('open');
 }
 
-function showView(v,btn) {
-  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(el=>el.classList.remove('active'));
-  document.getElementById('view-'+v).classList.add('active');
-  btn.classList.add('active');
-  if(v==='progress') renderProgress();
-  if(v==='history') renderHistory();
+/* ---------- routines ---------- */
+function renderRoutineChips() {
+  const wrap = document.getElementById('routine-chip-row');
+  let html = `<div class="chip ${!activeRoutineId?'active':''}" onclick="selectRoutine(null)">Вільний режим</div>`;
+  html += routines.map(r=>
+    `<div class="chip ${activeRoutineId===r.id?'active':''}" onclick="selectRoutine('${r.id}')">${r.name}</div>`
+  ).join('');
+  html += `<div class="chip ghost" onclick="openRoutineEditor(null)">➕ Нова</div>`;
+  wrap.innerHTML = html;
+}
+
+function selectRoutine(id) {
+  activeRoutineId = id;
+  saveActiveRoutine();
+  renderRoutineChips();
+  renderLogView();
+}
+
+function renderLogView() {
+  const checklistCard = document.getElementById('routine-checklist-card');
+  const freeformCard = document.getElementById('freeform-card');
+  const routine = routines.find(r=>r.id===activeRoutineId);
+  if (routine) {
+    checklistCard.style.display = 'block';
+    freeformCard.style.display = 'none';
+    document.getElementById('routine-checklist-title').textContent = routine.name;
+    const todaysEntries = data[today] || [];
+    const list = document.getElementById('routine-checklist');
+    if (!routine.exercises.length) {
+      list.innerHTML = `<div class="routine-empty">Ця програма ще порожня.<br>Тапни ✏️, щоб додати вправи.</div>`;
+    } else {
+      list.innerHTML = routine.exercises.map(ex=>{
+        const todaysForEx = todaysEntries.filter(e=>e.exercise===ex);
+        const done = todaysForEx.length>0;
+        const last = lastEntryFor(ex);
+        let sub;
+        if (done) {
+          const lastSet = todaysForEx[todaysForEx.length-1];
+          sub = `Сьогодні: ${lastSet.weight}кг × ${lastSet.sets}×${lastSet.reps}`;
+        } else if (last) {
+          sub = `Востаннє: ${last.weight}кг × ${last.sets}×${last.reps}`;
+        } else {
+          sub = 'Ще не робив';
+        }
+        return `<div class="check-row ${done?'done':''}" onclick="startLogFor('${ex.replace(/'/g,"\\'")}')">
+          <div class="check-dot">${done?'✓':''}</div>
+          <div class="check-info">
+            <div class="check-name">${ex}</div>
+            <div class="check-sub">${sub}</div>
+          </div>
+          <div class="check-arrow">›</div>
+        </div>`;
+      }).join('');
+    }
+  } else {
+    checklistCard.style.display = 'none';
+    freeformCard.style.display = 'block';
+    renderRecentChips();
+  }
+}
+
+function renderRecentChips() {
+  const recent = recentExercises(6);
+  const wrap = document.getElementById('recent-chip-row');
+  if (!recent.length) { wrap.innerHTML = "<span style=\"font-size:12px;color:var(--dim)\">Ще немає історії — обери вправу нижче</span>"; return; }
+  wrap.innerHTML = recent.map(ex=>
+    `<div class="chip" onclick="startLogFor('${ex.replace(/'/g,"\\'")}')">${ex}</div>`
+  ).join('');
+}
+
+function openRoutineEditor(id) {
+  const routine = routines.find(r=>r.id===id);
+  routineDraft = routine
+    ? { id: routine.id, name: routine.name, exercises: [...routine.exercises] }
+    : { id: null, name: '', exercises: [] };
+  document.getElementById('re-title').textContent = routine ? 'Редагувати програму' : 'Нова програма';
+  document.getElementById('re-name').value = routineDraft.name;
+  document.getElementById('re-delete-btn').style.display = routine ? 'block' : 'none';
+  renderRoutineDraftList();
+  openSheet('re');
+}
+
+function renderRoutineDraftList() {
+  const list = document.getElementById('re-ex-list');
+  if (!routineDraft.exercises.length) {
+    list.innerHTML = `<div class="routine-empty">Немає вправ. Додай нижче.</div>`;
+    return;
+  }
+  list.innerHTML = routineDraft.exercises.map((ex,i)=>
+    `<div class="re-ex-row"><span>${ex}</span><button class="re-del" onclick="removeExerciseFromDraft(${i})">✕</button></div>`
+  ).join('');
+}
+
+function addExerciseToRoutineDraft(ex) {
+  if (!routineDraft.exercises.includes(ex)) routineDraft.exercises.push(ex);
+  renderRoutineDraftList();
+  closeSheet('pick');
+}
+function removeExerciseFromDraft(i) {
+  routineDraft.exercises.splice(i,1);
+  renderRoutineDraftList();
+}
+
+function saveRoutine() {
+  const name = document.getElementById('re-name').value.trim();
+  if (!name) { alert('Дай програмі назву!'); return; }
+  if (routineDraft.id) {
+    const r = routines.find(r=>r.id===routineDraft.id);
+    r.name = name; r.exercises = routineDraft.exercises;
+  } else {
+    const id = 'r'+Date.now();
+    routines.push({ id, name, exercises: routineDraft.exercises });
+    activeRoutineId = id;
+    saveActiveRoutine();
+  }
+  saveRoutines();
+  renderRoutineChips();
+  renderLogView();
+  closeSheet('re');
+}
+
+function deleteRoutine() {
+  if (!confirm('Видалити цю програму? Записані тренування не зникнуть.')) return;
+  routines = routines.filter(r=>r.id!==routineDraft.id);
+  saveRoutines();
+  if (activeRoutineId===routineDraft.id) { activeRoutineId=null; saveActiveRoutine(); }
+  renderRoutineChips();
+  renderLogView();
+  closeSheet('re');
+}
+
+/* ---------- exercise picker (shared) ---------- */
+function openExercisePicker(callback, options) {
+  pickerCallback = callback;
+  pickerOptions = options || {};
+  document.getElementById('pick-title').textContent = pickerOptions.addMode ? 'Додати вправу до програми' : 'Обери вправу';
+  document.getElementById('pick-search').value = '';
+  renderPickerList();
+  openSheet('pick');
+}
+
+function renderPickerList() {
+  const q = document.getElementById('pick-search').value.trim().toLowerCase();
+  const all = allExercises();
+  const filtered = q ? all.filter(e=>e.toLowerCase().includes(q)) : all;
+  const list = document.getElementById('pick-list');
+  let html = filtered.map(ex=>
+    `<div class="pick-row" onclick="pickerChoose('${ex.replace(/'/g,"\\'")}')"><span>${ex}</span></div>`
+  ).join('');
+  if (!pickerOptions.noAdd && q && !all.some(e=>e.toLowerCase()===q)) {
+    html += `<div class="pick-row add-mode" onclick="pickerAddCustom()"><span>+ Додати «${document.getElementById('pick-search').value.trim()}»</span></div>`;
+  }
+  if (!filtered.length && (pickerOptions.noAdd || !q)) {
+    html = `<div class="pick-empty">Нічого не знайдено</div>`;
+  }
+  list.innerHTML = html;
+}
+
+function pickerChoose(ex) {
+  if (pickerCallback) pickerCallback(ex);
+}
+function pickerAddCustom() {
+  const v = document.getElementById('pick-search').value.trim();
+  if (!v) return;
+  if (!customExercises.includes(v) && !BASE_EXERCISES.includes(v)) { customExercises.push(v); saveCustom(); }
+  if (pickerCallback) pickerCallback(v);
+}
+
+function selectProgressExercise(ex) {
+  document.getElementById('prog-picker-label').textContent = ex;
+  document.getElementById('prog-picker-btn').dataset.ex = ex;
+  closeSheet('pick');
+  renderProgress();
+}
+
+/* ---------- quick log ---------- */
+function stepVal(field, delta) {
+  const el = document.getElementById('inp-'+field);
+  const cur = parseFloat(el.value) || 0;
+  let next = Math.round((cur + delta) * 10) / 10;
+  if (next < (field==='weight' ? 0 : 1)) next = field==='weight' ? 0 : 1;
+  el.value = next;
+  updatePreview();
 }
 
 function updatePreview() {
@@ -420,47 +680,101 @@ function updatePreview() {
   const s=parseInt(document.getElementById('inp-sets').value);
   const r=parseInt(document.getElementById('inp-reps').value);
   const el=document.getElementById('vol-preview');
-  if(w&&s&&r) el.innerHTML=`Загальний об'єм: <strong>${(w*s*r).toFixed(0)} кг</strong>`;
-  else el.textContent="Введи дані для розрахунку об'єму";
+  if(w&&s&&r) el.innerHTML=`Об'єм підходу: <b>${(w*s*r).toFixed(0)} кг</b>`;
+  else el.textContent="Об'єм з'явиться тут";
 }
 
-function showCustom() { document.getElementById('custom-area').style.display='block'; }
-function hideCustom() { document.getElementById('custom-area').style.display='none'; }
-function addCustomEx() {
-  const v=document.getElementById('custom-input').value.trim();
-  if(!v) return;
-  if(!customExercises.includes(v)&&!BASE_EXERCISES.includes(v)){ customExercises.push(v); saveCustom(); buildSelects(); }
-  document.getElementById('ex-select').value=v;
-  document.getElementById('custom-input').value='';
-  hideCustom();
+function lastEntryFor(exercise) {
+  const dates = Object.keys(data).sort((a,b)=>b.localeCompare(a));
+  for (const d of dates) {
+    const found = data[d].slice().reverse().find(e=>e.exercise===exercise);
+    if (found) return found;
+  }
+  return null;
+}
+
+function startLogFor(ex) {
+  closeSheet('pick');
+  currentLogExercise = ex;
+  document.getElementById('ql-exname').textContent = ex;
+  const last = lastEntryFor(ex);
+  if (last) {
+    document.getElementById('ql-last').textContent = `Востаннє: ${last.weight}кг × ${last.sets}×${last.reps}`;
+    document.getElementById('inp-weight').value = last.weight;
+    document.getElementById('inp-sets').value = last.sets;
+    document.getElementById('inp-reps').value = last.reps;
+  } else {
+    document.getElementById('ql-last').textContent = 'Перший раз — заповни дані нижче';
+    document.getElementById('inp-weight').value = '';
+    document.getElementById('inp-sets').value = 3;
+    document.getElementById('inp-reps').value = 10;
+  }
+  updatePreview();
+  openSheet('ql');
 }
 
 function addEntry() {
-  const ex=document.getElementById('ex-select').value;
+  const ex = currentLogExercise;
   const w=parseFloat(document.getElementById('inp-weight').value);
   const s=parseInt(document.getElementById('inp-sets').value);
   const r=parseInt(document.getElementById('inp-reps').value);
-  if(!ex||!w||!s||!r){ alert('Заповни всі поля!'); return; }
+  if(!ex||!w||!s||!r){ alert('Заповни вагу, підходи й повтори!'); return; }
   if(!data[today]) data[today]=[];
   data[today].push({ exercise:ex, weight:w, sets:s, reps:r, volume:w*s*r,
     time:new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'}) });
   saveData();
-  document.getElementById('inp-weight').value='';
-  document.getElementById('inp-sets').value='';
-  document.getElementById('inp-reps').value='';
-  document.getElementById('vol-preview').textContent="Введи дані для розрахунку об'єму";
   const btn=document.getElementById('add-btn');
-  btn.textContent='✓ Збережено!'; btn.classList.add('saved');
-  setTimeout(()=>{ btn.textContent='Зберегти підхід'; btn.classList.remove('saved'); },1800);
+  btn.textContent='✓ Збережено'; btn.classList.add('saved');
   document.getElementById('streak-num').textContent=calcStreak();
+  renderLogView();
   renderToday();
+  setTimeout(()=>{
+    btn.textContent='Зберегти підхід'; btn.classList.remove('saved');
+    closeSheet('ql');
+    startRestTimer(90);
+  },500);
 }
 
 function deleteEntry(date,idx) {
   data[date].splice(idx,1);
   if(!data[date].length) delete data[date];
-  saveData(); renderToday(); renderHistory();
+  saveData(); renderToday(); renderHistory(); renderLogView();
   document.getElementById('streak-num').textContent=calcStreak();
+}
+
+/* ---------- rest timer ---------- */
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type='sine'; o.frequency.value=880;
+    g.gain.setValueAtTime(0.18, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.5);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime+0.5);
+  } catch(e) {}
+}
+
+let restSeconds = 0;
+function startRestTimer(seconds) {
+  restSeconds = seconds;
+  updateRestDisplay();
+  document.getElementById('rest-timer').classList.add('open');
+  if (restInterval) clearInterval(restInterval);
+  restInterval = setInterval(()=>{
+    restSeconds--;
+    if (restSeconds <= 0) { playBeep(); closeRestTimer(); return; }
+    updateRestDisplay();
+  }, 1000);
+}
+function updateRestDisplay() {
+  const m = Math.floor(restSeconds/60), s = restSeconds%60;
+  document.getElementById('rt-time').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+}
+function restTimerAdd(sec) { restSeconds += sec; updateRestDisplay(); }
+function closeRestTimer() {
+  document.getElementById('rest-timer').classList.remove('open');
+  if (restInterval) { clearInterval(restInterval); restInterval=null; }
 }
 
 function getPRs() {
@@ -482,14 +796,14 @@ function renderToday() {
     <div class="stat-box"><div class="stat-val">${entries.length}</div><div class="stat-lbl">Підходи</div></div>
     <div class="stat-box"><div class="stat-val">${uniqEx}</div><div class="stat-lbl">Вправи</div></div>
     <div class="stat-box"><div class="stat-val">${totalVol.toFixed(0)}</div><div class="stat-lbl">кг об'єм</div></div>
-    <div class="stat-box"><div class="stat-val">${maxW}</div><div class="stat-lbl">макс кг</div></div>`;
+    <div class="stat-box"><div class="stat-val">${maxW}</div><div class="stat-lbl">Макс кг</div></div>`;
   const prs=getPRs();
   document.getElementById('today-list').innerHTML=entries.map((e,i)=>{
     const isPR=prs[e.exercise]===e.weight;
     return `<div class="entry-row">
       <div>
-        <div class="entry-name">${e.exercise}${isPR?'<span class="pr-tag">🏆 PR</span>':''}</div>
-        <div class="entry-sub">${e.weight}кг · ${e.sets}×${e.reps} · об'єм ${e.volume.toFixed(0)}кг · ${e.time}</div>
+        <div class="entry-name">${e.exercise}${isPR?'<span class="pr-tag">PR</span>':''}</div>
+        <div class="entry-sub">${e.weight}кг · ${e.sets}×${e.reps} · ${e.volume.toFixed(0)}кг · ${e.time}</div>
       </div>
       <button class="btn-del" onclick="deleteEntry('${today}',${i})">✕</button>
     </div>`;
@@ -507,10 +821,11 @@ function getProgressData(exercise) {
 }
 
 function renderProgress() {
-  const exercise=document.getElementById('prog-select').value;
-  const pts=getProgressData(exercise);
+  const exercise=document.getElementById('prog-picker-btn').dataset.ex;
   const empty=document.getElementById('prog-empty'), list=document.getElementById('prog-list');
   const statsEl=document.getElementById('prog-stats'), chartWrap=document.getElementById('chart-label-wrap');
+  if (!exercise) { statsEl.innerHTML=''; list.innerHTML=''; chartWrap.style.display='none'; empty.style.display='none'; clearChart(); return; }
+  const pts=getProgressData(exercise);
   if(!pts.length){ statsEl.innerHTML=''; list.innerHTML=''; chartWrap.style.display='none';
     empty.style.display='block'; clearChart(); return; }
   empty.style.display='none'; chartWrap.style.display='block';
@@ -524,13 +839,13 @@ function renderProgress() {
   document.getElementById('chart-dates').innerHTML=pts.map(p=>{
     const d=new Date(p.date); return `<span>${d.getDate()}/${d.getMonth()+1}</span>`;
   }).join('');
-  list.innerHTML='<div class="divider"></div><div class="card-title" style="margin-bottom:12px">Деталі по сесіях</div>'+
+  list.innerHTML='<div class="divider"></div><div class="card-title"><span>Деталі по сесіях</span></div>'+
     pts.slice().reverse().map(p=>{
       const d=new Date(p.date).toLocaleDateString('uk-UA',{day:'numeric',month:'short',year:'numeric'});
       return `<div class="entry-row">
         <div><div class="entry-name" style="font-size:13px">${d}</div>
         <div class="entry-sub">Об'єм сесії: ${p.totalVolume.toFixed(0)} кг</div></div>
-        <div style="font-size:18px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent">${p.maxWeight} кг</div>
+        <div style="font-family:var(--display);font-size:20px;color:var(--accent)">${p.maxWeight} кг</div>
       </div>`;
     }).join('');
 }
@@ -548,19 +863,18 @@ function drawChart(pts) {
   const vals=pts.map(p=>p.maxWeight);
   const min=Math.min(...vals), max=Math.max(...vals), range=max-min||1;
   const W=canvas.width, H=canvas.height, px=16, py=18;
-  const xs=pts.map((_,i)=>px+(i/(pts.length-1))*(W-2*px));
+  const xs=pts.map((_,i)=>px+(i/(pts.length-1||1))*(W-2*px));
   const ys=vals.map(v=>H-py-((v-min)/range)*(H-2*py));
 
-  ctx.strokeStyle='rgba(79,142,247,0.07)'; ctx.lineWidth=1;
+  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
   [0.25,0.5,0.75].forEach(t=>{
     const y=py+(1-t)*(H-2*py);
     ctx.beginPath(); ctx.moveTo(px,y); ctx.lineTo(W-px,y); ctx.stroke();
   });
 
   const grad=ctx.createLinearGradient(0,0,0,H);
-  grad.addColorStop(0,'rgba(79,142,247,0.3)');
-  grad.addColorStop(0.5,'rgba(123,94,167,0.15)');
-  grad.addColorStop(1,'rgba(79,142,247,0)');
+  grad.addColorStop(0,'rgba(255,90,54,0.28)');
+  grad.addColorStop(1,'rgba(255,90,54,0)');
   ctx.beginPath(); ctx.moveTo(xs[0],ys[0]);
   for(let i=1;i<xs.length;i++){
     const mx=(xs[i-1]+xs[i])/2;
@@ -569,22 +883,20 @@ function drawChart(pts) {
   ctx.lineTo(xs[xs.length-1],H); ctx.lineTo(xs[0],H); ctx.closePath();
   ctx.fillStyle=grad; ctx.fill();
 
-  const lineGrad=ctx.createLinearGradient(0,0,W,0);
-  lineGrad.addColorStop(0,'#4f8ef7'); lineGrad.addColorStop(1,'#7b5ea7');
   ctx.beginPath(); ctx.moveTo(xs[0],ys[0]);
   for(let i=1;i<xs.length;i++){
     const mx=(xs[i-1]+xs[i])/2;
     ctx.bezierCurveTo(mx,ys[i-1],mx,ys[i],xs[i],ys[i]);
   }
-  ctx.strokeStyle=lineGrad; ctx.lineWidth=2.5; ctx.stroke();
+  ctx.strokeStyle='#ff5a36'; ctx.lineWidth=2.5; ctx.stroke();
 
   xs.forEach((x,i)=>{
-    ctx.beginPath(); ctx.arc(x,ys[i],5,0,Math.PI*2);
-    ctx.fillStyle='#fff'; ctx.fill();
-    ctx.strokeStyle='#4f8ef7'; ctx.lineWidth=2.5; ctx.stroke();
-    ctx.fillStyle='rgba(240,244,255,0.9)';
-    ctx.font='bold 10px Outfit,sans-serif'; ctx.textAlign='center';
-    ctx.fillText(vals[i]+'кг', x, ys[i]-11<py ? ys[i]+18 : ys[i]-11);
+    ctx.beginPath(); ctx.arc(x,ys[i],4.5,0,Math.PI*2);
+    ctx.fillStyle='#15171c'; ctx.fill();
+    ctx.strokeStyle='#ff5a36'; ctx.lineWidth=2.5; ctx.stroke();
+    ctx.fillStyle='#f2f0ec';
+    ctx.font='700 10px Manrope,sans-serif'; ctx.textAlign='center';
+    ctx.fillText(vals[i]+'кг', x, ys[i]-11<py ? ys[i]+20 : ys[i]-11);
   });
 }
 
@@ -602,7 +914,7 @@ function renderHistory() {
       const isPR=prs[e.exercise]===e.weight;
       return `<div class="entry-row">
         <div>
-          <span class="entry-name" style="font-size:13px">${e.exercise}${isPR?'<span class="pr-tag">🏆 PR</span>':''}</span>
+          <span class="entry-name" style="font-size:13px">${e.exercise}${isPR?'<span class="pr-tag">PR</span>':''}</span>
           <div class="entry-sub">${e.weight}кг · ${e.sets}×${e.reps} · ${e.volume.toFixed(0)}кг об'єм</div>
         </div>
         <button class="btn-del" onclick="deleteEntry('${date}',${i})">✕</button>
@@ -616,12 +928,24 @@ function renderHistory() {
   }).join('');
 }
 
+function showView(v,btn) {
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  btn.classList.add('active');
+  if(v==='progress') renderProgress();
+  if(v==='history') renderHistory();
+}
+
 window.addEventListener('resize',()=>{
-  const pts=getProgressData(document.getElementById('prog-select').value);
+  const ex = document.getElementById('prog-picker-btn').dataset.ex;
+  if (!ex) return;
+  const pts=getProgressData(ex);
   if(pts.length) drawChart(pts);
 });
 
-buildSelects();
+renderRoutineChips();
+renderLogView();
 renderToday();
 renderProgress();
 renderHistory();
