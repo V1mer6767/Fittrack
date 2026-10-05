@@ -175,6 +175,40 @@ header {
 .stepper-row2 .stepper input { font-size: 22px; }
 
 .volume-line { text-align: center; font-size: 13px; color: var(--dim); margin: 14px 0; }
+
+.photo-block { margin-bottom: 14px; }
+.photo-pick {
+  border: 1.5px dashed var(--line); border-radius: 14px;
+  padding: 16px; text-align: center;
+  color: var(--dim); font-size: 13px; font-weight: 700;
+  cursor: pointer; background: var(--surface2);
+}
+.photo-pick:active { background: var(--surface3); }
+.photo-preview {
+  width: 100%; max-height: 180px; object-fit: cover;
+  border-radius: 14px; border: 1px solid var(--line); display: block;
+}
+.photo-remove {
+  width: 100%; margin-top: 8px; padding: 9px;
+  background: none; border: 1px solid var(--line); border-radius: 10px;
+  color: var(--waste,#ef4444); font-size: 12px; font-weight: 700;
+  font-family: var(--body); cursor: pointer;
+}
+.entry-thumb {
+  width: 42px; height: 42px; border-radius: 10px; object-fit: cover;
+  margin-right: 10px; flex-shrink: 0; cursor: pointer;
+  border: 1px solid var(--line);
+}
+.entry-row-with-thumb { display: flex; align-items: center; }
+
+.lightbox {
+  position: fixed; inset: 0; z-index: 60;
+  display: none; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.lightbox.open { display: flex; }
+.lightbox img { max-width: 100%; max-height: 100%; border-radius: 14px; }
+#lightbox-backdrop { z-index: 59; }
 .volume-line b { color: var(--text); font-weight: 700; }
 
 .btn-save {
@@ -417,8 +451,26 @@ nav button.active { color: var(--accent); }
     </div>
   </div>
 
+  <div class="photo-block">
+    <div class="stepper-label">Фото тренажера (необов'язково)</div>
+    <div id="photo-empty" class="photo-pick" onclick="document.getElementById('inp-photo').click()">
+      📷 Додати фото
+    </div>
+    <div id="photo-preview-wrap" style="display:none;">
+      <img id="photo-preview" class="photo-preview"/>
+      <button class="photo-remove" onclick="removePendingPhoto()">✕ Прибрати фото</button>
+    </div>
+    <input type="file" id="inp-photo" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoSelect(event)"/>
+  </div>
+
   <div class="volume-line" id="vol-preview">Об'єм з'явиться тут</div>
   <button class="btn-save" id="add-btn" onclick="addEntry()">Зберегти підхід</button>
+</div>
+
+<!-- Photo lightbox -->
+<div class="sheet-backdrop" id="lightbox-backdrop" onclick="closeLightbox()"></div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src=""/>
 </div>
 
 <!-- Exercise picker sheet -->
@@ -776,7 +828,50 @@ function startLogFor(ex) {
     document.getElementById('inp-reps').value = 10;
   }
   updatePreview();
+  removePendingPhoto();
   openSheet('ql');
+}
+
+/* ---------- photo capture ---------- */
+let pendingPhoto = null;
+function handlePhotoSelect(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = 480;
+      let w = img.width, h = img.height;
+      if (w > h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+      else if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      pendingPhoto = canvas.toDataURL('image/jpeg', 0.7);
+      document.getElementById('photo-preview').src = pendingPhoto;
+      document.getElementById('photo-empty').style.display = 'none';
+      document.getElementById('photo-preview-wrap').style.display = 'block';
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+function removePendingPhoto() {
+  pendingPhoto = null;
+  document.getElementById('photo-empty').style.display = 'block';
+  document.getElementById('photo-preview-wrap').style.display = 'none';
+  document.getElementById('photo-preview').src = '';
+}
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox-backdrop').classList.add('open');
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox-backdrop').classList.remove('open');
+  document.getElementById('lightbox').classList.remove('open');
 }
 
 function addEntry() {
@@ -787,7 +882,8 @@ function addEntry() {
   if(!ex||!w||!s||!r){ alert('Заповни вагу, підходи й повтори!'); return; }
   if(!data[today]) data[today]=[];
   data[today].push({ exercise:ex, weight:w, sets:s, reps:r, volume:w*s*r,
-    time:new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'}) });
+    time:new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'}),
+    photo: pendingPhoto || null });
   saveData();
   const btn=document.getElementById('add-btn');
   btn.textContent='✓ Збережено'; btn.classList.add('saved');
@@ -866,8 +962,10 @@ function renderToday() {
   const prs=getPRs();
   document.getElementById('today-list').innerHTML=entries.map((e,i)=>{
     const isPR=prs[e.exercise]===e.weight;
-    return `<div class="entry-row">
-      <div>
+    const thumb = e.photo ? `<img class="entry-thumb" src="${e.photo}" onclick="openLightbox('${e.photo}')"/>` : '';
+    return `<div class="entry-row entry-row-with-thumb">
+      ${thumb}
+      <div style="flex:1;min-width:0;">
         <div class="entry-name">${e.exercise}${isPR?'<span class="pr-tag">PR</span>':''}</div>
         <div class="entry-sub">${e.weight}кг · ${e.sets}×${e.reps} · ${e.volume.toFixed(0)}кг · ${e.time}</div>
       </div>
@@ -978,8 +1076,10 @@ function renderHistory() {
     const exs=[...new Set(entries.map(e=>e.exercise))].join(' · ');
     const rows=entries.map((e,i)=>{
       const isPR=prs[e.exercise]===e.weight;
-      return `<div class="entry-row">
-        <div>
+      const thumb = e.photo ? `<img class="entry-thumb" src="${e.photo}" onclick="openLightbox('${e.photo}')"/>` : '';
+      return `<div class="entry-row entry-row-with-thumb">
+        ${thumb}
+        <div style="flex:1;min-width:0;">
           <span class="entry-name" style="font-size:13px">${e.exercise}${isPR?'<span class="pr-tag">PR</span>':''}</span>
           <div class="entry-sub">${e.weight}кг · ${e.sets}×${e.reps} · ${e.volume.toFixed(0)}кг об'єм</div>
         </div>
