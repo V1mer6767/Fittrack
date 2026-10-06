@@ -272,7 +272,9 @@ header {
 .rt-btn { background: var(--surface2); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--body); }
 .rt-x { background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer; padding: 4px; }
 
-.stats-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.stats-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.cardio-summary { flex: 1 1 100%; text-align: center; font-size: 13px; color: var(--dim); padding: 4px 0 0; }
+.cardio-summary b { color: var(--text); }
 .stat-box { flex: 1; background: var(--surface2); border-radius: 12px; padding: 12px 6px; text-align: center; }
 .stat-val { font-family: var(--display); font-size: 22px; color: var(--text); line-height: 1; }
 .stat-lbl { font-size: 9px; color: var(--dim); font-weight: 700; text-transform: uppercase; margin-top: 4px; letter-spacing: .3px; }
@@ -423,6 +425,7 @@ nav button.active { color: var(--accent); }
   <div class="ql-exname" id="ql-exname">—</div>
   <div class="ql-last" id="ql-last"></div>
 
+  <div id="strength-fields">
   <div class="stepper-block">
     <div class="stepper-label">Вага, кг</div>
     <div class="stepper">
@@ -447,6 +450,26 @@ nav button.active { color: var(--accent); }
         <button onclick="stepVal('reps',-1)">−</button>
         <input type="number" id="inp-reps" inputmode="numeric" oninput="updatePreview()"/>
         <button onclick="stepVal('reps',1)">+</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div id="cardio-fields" style="display:none;">
+    <div class="stepper-block">
+      <div class="stepper-label">Відстань, км</div>
+      <div class="stepper">
+        <button onclick="stepVal('distance',-0.5)">−</button>
+        <input type="number" id="inp-distance" inputmode="decimal" step="0.01" oninput="updatePreview()"/>
+        <button onclick="stepVal('distance',0.5)">+</button>
+      </div>
+    </div>
+    <div class="stepper-block">
+      <div class="stepper-label">Швидкість, км/год</div>
+      <div class="stepper">
+        <button onclick="stepVal('speed',-0.5)">−</button>
+        <input type="number" id="inp-speed" inputmode="decimal" step="0.1" oninput="updatePreview()"/>
+        <button onclick="stepVal('speed',0.5)">+</button>
       </div>
     </div>
   </div>
@@ -517,8 +540,23 @@ const BASE_EXERCISES = [
   "Жим лежачи","Присідання","Станова тяга","Жим стоячи",
   "Підтягування","Тяга штанги в нахилі","Жим гантелей",
   "Розгинання на трицепс","Підйом на біцепс","Планка",
-  "Випади","Тяга верхнього блоку","Жим ногами","Гіперекстензія"
+  "Випади","Тяга верхнього блоку","Жим ногами","Гіперекстензія",
+  "Бігова доріжка"
 ];
+const CARDIO_EXERCISES = ["Бігова доріжка"];
+function isCardio(name) { return CARDIO_EXERCISES.includes(name); }
+const r2 = n => Math.round(n * 100) / 100;
+function fmtDuration(min) {
+  const total = Math.round(min);
+  if (total < 60) return total + ' хв';
+  const h = Math.floor(total / 60), m = total % 60;
+  return h + ' год' + (m ? ' ' + m + ' хв' : '');
+}
+function entryMetric(e) { return e.cardio ? e.distance : e.weight; }
+function describeSet(e) {
+  if (e.cardio) return `${r2(e.distance)} км · ${r2(e.speed)} км/год · ${fmtDuration(e.duration)}`;
+  return `${e.weight}кг × ${e.sets}×${e.reps}`;
+}
 
 let customExercises = JSON.parse(localStorage.getItem('fittrack_custom') || '[]');
 let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -646,9 +684,9 @@ function renderLogView() {
         let sub;
         if (done) {
           const lastSet = todaysForEx[todaysForEx.length-1];
-          sub = `Сьогодні: ${lastSet.weight}кг × ${lastSet.sets}×${lastSet.reps}`;
+          sub = `Сьогодні: ${describeSet(lastSet)}`;
         } else if (last) {
-          sub = `Востаннє: ${last.weight}кг × ${last.sets}×${last.reps}`;
+          sub = `Востаннє: ${describeSet(last)}`;
         } else {
           sub = 'Ще не робив';
         }
@@ -787,13 +825,22 @@ function selectProgressExercise(ex) {
 function stepVal(field, delta) {
   const el = document.getElementById('inp-'+field);
   const cur = parseFloat(el.value) || 0;
-  let next = Math.round((cur + delta) * 10) / 10;
-  if (next < (field==='weight' ? 0 : 1)) next = field==='weight' ? 0 : 1;
+  let next = Math.round((cur + delta) * 100) / 100;
+  const min = (field==='weight' || field==='distance') ? 0 : (field==='speed' ? 0.5 : 1);
+  if (next < min) next = min;
   el.value = next;
   updatePreview();
 }
 
 function updatePreview() {
+  if (isCardio(currentLogExercise)) {
+    const d=parseFloat(document.getElementById('inp-distance').value);
+    const v=parseFloat(document.getElementById('inp-speed').value);
+    const el=document.getElementById('vol-preview');
+    if(d>0&&v>0) el.innerHTML=`Час: <b>${fmtDuration(d/v*60)}</b>`;
+    else el.textContent='Час порахується тут';
+    return;
+  }
   const w=parseFloat(document.getElementById('inp-weight').value);
   const s=parseInt(document.getElementById('inp-sets').value);
   const r=parseInt(document.getElementById('inp-reps').value);
@@ -811,13 +858,29 @@ function lastEntryFor(exercise) {
   return null;
 }
 
+function saveLabel() { return isCardio(currentLogExercise) ? 'Зберегти кардіо' : 'Зберегти підхід'; }
+
 function startLogFor(ex) {
   closeSheet('pick');
   currentLogExercise = ex;
   document.getElementById('ql-exname').textContent = ex;
   const last = lastEntryFor(ex);
-  if (last) {
-    document.getElementById('ql-last').textContent = `Востаннє: ${last.weight}кг × ${last.sets}×${last.reps}`;
+  const cardio = isCardio(ex);
+  document.getElementById('strength-fields').style.display = cardio ? 'none' : 'block';
+  document.getElementById('cardio-fields').style.display = cardio ? 'block' : 'none';
+  document.getElementById('add-btn').textContent = saveLabel();
+  if (cardio) {
+    if (last && last.cardio) {
+      document.getElementById('ql-last').textContent = `Востаннє: ${describeSet(last)}`;
+      document.getElementById('inp-distance').value = last.distance;
+      document.getElementById('inp-speed').value = last.speed;
+    } else {
+      document.getElementById('ql-last').textContent = 'Перший раз — заповни дані нижче';
+      document.getElementById('inp-distance').value = '';
+      document.getElementById('inp-speed').value = 8;
+    }
+  } else if (last && !last.cardio) {
+    document.getElementById('ql-last').textContent = `Востаннє: ${describeSet(last)}`;
     document.getElementById('inp-weight').value = last.weight;
     document.getElementById('inp-sets').value = last.sets;
     document.getElementById('inp-reps').value = last.reps;
@@ -876,14 +939,23 @@ function closeLightbox() {
 
 function addEntry() {
   const ex = currentLogExercise;
-  const w=parseFloat(document.getElementById('inp-weight').value);
-  const s=parseInt(document.getElementById('inp-sets').value);
-  const r=parseInt(document.getElementById('inp-reps').value);
-  if(!ex||!w||!s||!r){ alert('Заповни вагу, підходи й повтори!'); return; }
+  const cardio = isCardio(ex);
+  const nowTime = new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
   if(!data[today]) data[today]=[];
-  data[today].push({ exercise:ex, weight:w, sets:s, reps:r, volume:w*s*r,
-    time:new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'}),
-    photo: pendingPhoto || null });
+  if (cardio) {
+    const d=parseFloat(document.getElementById('inp-distance').value);
+    const v=parseFloat(document.getElementById('inp-speed').value);
+    if(!ex||!(d>0)||!(v>0)){ alert('Заповни відстань і швидкість!'); return; }
+    data[today].push({ exercise:ex, cardio:true, distance:r2(d), speed:r2(v), duration:r2(d/v*60),
+      weight:0, sets:1, reps:1, volume:0, time:nowTime, photo: pendingPhoto || null });
+  } else {
+    const w=parseFloat(document.getElementById('inp-weight').value);
+    const s=parseInt(document.getElementById('inp-sets').value);
+    const r=parseInt(document.getElementById('inp-reps').value);
+    if(!ex||!w||!s||!r){ alert('Заповни вагу, підходи й повтори!'); return; }
+    data[today].push({ exercise:ex, weight:w, sets:s, reps:r, volume:w*s*r,
+      time:nowTime, photo: pendingPhoto || null });
+  }
   saveData();
   const btn=document.getElementById('add-btn');
   btn.textContent='✓ Збережено'; btn.classList.add('saved');
@@ -891,9 +963,9 @@ function addEntry() {
   renderLogView();
   renderToday();
   setTimeout(()=>{
-    btn.textContent='Зберегти підхід'; btn.classList.remove('saved');
+    btn.textContent=cardio ? 'Зберегти кардіо' : 'Зберегти підхід'; btn.classList.remove('saved');
     closeSheet('ql');
-    startRestTimer(90);
+    if (!cardio) startRestTimer(90);
   },500);
 }
 
@@ -941,7 +1013,7 @@ function closeRestTimer() {
 
 function getPRs() {
   const prs={};
-  Object.values(data).flat().forEach(e=>{ if(!prs[e.exercise]||e.weight>prs[e.exercise]) prs[e.exercise]=e.weight; });
+  Object.values(data).flat().forEach(e=>{ const m=entryMetric(e); if(!prs[e.exercise]||m>prs[e.exercise]) prs[e.exercise]=m; });
   return prs;
 }
 
@@ -951,23 +1023,38 @@ function renderToday() {
   if(!entries.length){ card.style.display='none'; empty.style.display='block'; return; }
   card.style.display='block'; empty.style.display='none';
   document.getElementById('today-count').textContent=entries.length;
-  const totalVol=entries.reduce((s,e)=>s+e.volume,0);
-  const uniqEx=[...new Set(entries.map(e=>e.exercise))].length;
-  const maxW=Math.max(...entries.map(e=>e.weight));
-  document.getElementById('today-stats').innerHTML=`
-    <div class="stat-box"><div class="stat-val">${entries.length}</div><div class="stat-lbl">Підходи</div></div>
+  const strength=entries.filter(e=>!e.cardio), cardioEs=entries.filter(e=>e.cardio);
+  const km=r2(cardioEs.reduce((s,e)=>s+e.distance,0));
+  const mins=cardioEs.reduce((s,e)=>s+e.duration,0);
+  let statsHtml='';
+  if (strength.length) {
+    const totalVol=strength.reduce((s,e)=>s+e.volume,0);
+    const uniqEx=[...new Set(strength.map(e=>e.exercise))].length;
+    const maxW=Math.max(...strength.map(e=>e.weight));
+    statsHtml=`
+    <div class="stat-box"><div class="stat-val">${strength.length}</div><div class="stat-lbl">Підходи</div></div>
     <div class="stat-box"><div class="stat-val">${uniqEx}</div><div class="stat-lbl">Вправи</div></div>
     <div class="stat-box"><div class="stat-val">${totalVol.toFixed(0)}</div><div class="stat-lbl">кг об'єм</div></div>
     <div class="stat-box"><div class="stat-val">${maxW}</div><div class="stat-lbl">Макс кг</div></div>`;
+    if (cardioEs.length) statsHtml+=`<div class="cardio-summary">🏃 Кардіо: <b>${km} км</b> · <b>${fmtDuration(mins)}</b></div>`;
+  } else {
+    const avg=mins>0?r2(km/(mins/60)):0;
+    statsHtml=`
+    <div class="stat-box"><div class="stat-val">${cardioEs.length}</div><div class="stat-lbl">Сесії</div></div>
+    <div class="stat-box"><div class="stat-val">${km}</div><div class="stat-lbl">км</div></div>
+    <div class="stat-box"><div class="stat-val">${Math.round(mins)}</div><div class="stat-lbl">хв</div></div>
+    <div class="stat-box"><div class="stat-val">${avg}</div><div class="stat-lbl">км/год</div></div>`;
+  }
+  document.getElementById('today-stats').innerHTML=statsHtml;
   const prs=getPRs();
   document.getElementById('today-list').innerHTML=entries.map((e,i)=>{
-    const isPR=prs[e.exercise]===e.weight;
+    const isPR=prs[e.exercise]===entryMetric(e);
     const thumb = e.photo ? `<img class="entry-thumb" src="${e.photo}" onclick="openLightbox('${e.photo}')"/>` : '';
     return `<div class="entry-row entry-row-with-thumb">
       ${thumb}
       <div style="flex:1;min-width:0;">
         <div class="entry-name">${e.exercise}${isPR?'<span class="pr-tag">PR</span>':''}</div>
-        <div class="entry-sub">${e.weight}кг · ${e.sets}×${e.reps} · ${e.volume.toFixed(0)}кг · ${e.time}</div>
+        <div class="entry-sub">${e.cardio ? describeSet(e) : `${e.weight}кг · ${e.sets}×${e.reps} · ${e.volume.toFixed(0)}кг`} · ${e.time}</div>
       </div>
       <button class="btn-del" onclick="deleteEntry('${today}',${i})">✕</button>
     </div>`;
@@ -979,7 +1066,8 @@ function getProgressData(exercise) {
     .filter(([,ents])=>ents.some(e=>e.exercise===exercise))
     .map(([date,ents])=>{
       const ex=ents.filter(e=>e.exercise===exercise);
-      return { date, maxWeight:Math.max(...ex.map(e=>e.weight)), totalVolume:ex.reduce((s,e)=>s+e.volume,0) };
+      const cardio=isCardio(exercise);
+      return { date, maxWeight:Math.max(...ex.map(entryMetric)), totalVolume:cardio?r2(ex.reduce((s,e)=>s+e.distance,0)):ex.reduce((s,e)=>s+e.volume,0) };
     })
     .sort((a,b)=>a.date.localeCompare(b.date)).slice(-12);
 }
@@ -993,13 +1081,14 @@ function renderProgress() {
   if(!pts.length){ statsEl.innerHTML=''; list.innerHTML=''; chartWrap.style.display='none';
     empty.style.display='block'; clearChart(); return; }
   empty.style.display='none'; chartWrap.style.display='block';
+  const cardioEx=isCardio(exercise), unit=cardioEx?'км':'кг';
   const maxW=Math.max(...pts.map(p=>p.maxWeight));
-  const diff=pts.length>=2?pts[pts.length-1].maxWeight-pts[0].maxWeight:0;
+  const diff=r2(pts.length>=2?pts[pts.length-1].maxWeight-pts[0].maxWeight:0);
   statsEl.innerHTML=`
-    <div class="stat-box"><div class="stat-val">${maxW}кг</div><div class="stat-lbl">Макс. вага</div></div>
+    <div class="stat-box"><div class="stat-val">${maxW}${unit}</div><div class="stat-lbl">${cardioEx?'Макс. відстань':'Макс. вага'}</div></div>
     <div class="stat-box"><div class="stat-val">${pts.length}</div><div class="stat-lbl">Тренувань</div></div>
-    <div class="stat-box"><div class="stat-val ${diff>=0?'diff-pos':'diff-neg'}">${diff>=0?'+':''}${diff}кг</div><div class="stat-lbl">Приріст</div></div>`;
-  drawChart(pts);
+    <div class="stat-box"><div class="stat-val ${diff>=0?'diff-pos':'diff-neg'}">${diff>=0?'+':''}${diff}${unit}</div><div class="stat-lbl">Приріст</div></div>`;
+  drawChart(pts, unit);
   document.getElementById('chart-dates').innerHTML=pts.map(p=>{
     const d=new Date(p.date); return `<span>${d.getDate()}/${d.getMonth()+1}</span>`;
   }).join('');
@@ -1008,8 +1097,8 @@ function renderProgress() {
       const d=new Date(p.date).toLocaleDateString('uk-UA',{day:'numeric',month:'short',year:'numeric'});
       return `<div class="entry-row">
         <div><div class="entry-name" style="font-size:13px">${d}</div>
-        <div class="entry-sub">Об'єм сесії: ${p.totalVolume.toFixed(0)} кг</div></div>
-        <div style="font-family:var(--display);font-size:20px;color:var(--accent)">${p.maxWeight} кг</div>
+        <div class="entry-sub">${cardioEx?`Відстань за день: ${p.totalVolume} км`:`Об'єм сесії: ${p.totalVolume.toFixed(0)} кг`}</div></div>
+        <div style="font-family:var(--display);font-size:20px;color:var(--accent)">${p.maxWeight} ${unit}</div>
       </div>`;
     }).join('');
 }
@@ -1019,7 +1108,7 @@ function clearChart() {
   c.getContext('2d').clearRect(0,0,c.width,c.height);
 }
 
-function drawChart(pts) {
+function drawChart(pts, unit='кг') {
   const canvas=document.getElementById('prog-chart');
   canvas.width=canvas.offsetWidth||340; canvas.height=110;
   const ctx=canvas.getContext('2d');
@@ -1060,7 +1149,7 @@ function drawChart(pts) {
     ctx.strokeStyle='#ff5a36'; ctx.lineWidth=2.5; ctx.stroke();
     ctx.fillStyle='#f2f0ec';
     ctx.font='700 10px Manrope,sans-serif'; ctx.textAlign='center';
-    ctx.fillText(vals[i]+'кг', x, ys[i]-11<py ? ys[i]+20 : ys[i]-11);
+    ctx.fillText(vals[i]+unit, x, ys[i]-11<py ? ys[i]+20 : ys[i]-11);
   });
 }
 
@@ -1073,22 +1162,24 @@ function renderHistory() {
   list.innerHTML=dates.map(date=>{
     const entries=data[date];
     const totalVol=entries.reduce((s,e)=>s+e.volume,0).toFixed(0);
+    const dayKm=r2(entries.filter(e=>e.cardio).reduce((s,e)=>s+e.distance,0));
+    const volLabel=(+totalVol>0||!dayKm)?`∑ ${totalVol} кг${dayKm?` · ${dayKm} км`:''}`:`∑ ${dayKm} км`;
     const exs=[...new Set(entries.map(e=>e.exercise))].join(' · ');
     const rows=entries.map((e,i)=>{
-      const isPR=prs[e.exercise]===e.weight;
+      const isPR=prs[e.exercise]===entryMetric(e);
       const thumb = e.photo ? `<img class="entry-thumb" src="${e.photo}" onclick="openLightbox('${e.photo}')"/>` : '';
       return `<div class="entry-row entry-row-with-thumb">
         ${thumb}
         <div style="flex:1;min-width:0;">
           <span class="entry-name" style="font-size:13px">${e.exercise}${isPR?'<span class="pr-tag">PR</span>':''}</span>
-          <div class="entry-sub">${e.weight}кг · ${e.sets}×${e.reps} · ${e.volume.toFixed(0)}кг об'єм</div>
+          <div class="entry-sub">${e.cardio ? describeSet(e) : `${e.weight}кг · ${e.sets}×${e.reps} · ${e.volume.toFixed(0)}кг об'єм`}</div>
         </div>
         <button class="btn-del" onclick="deleteEntry('${date}',${i})">✕</button>
       </div>`;
     }).join('');
     const d=new Date(date).toLocaleDateString('uk-UA',{weekday:'long',day:'numeric',month:'long'});
     return `<div class="card">
-      <div class="hist-head"><span class="hist-date">${d}</span><span class="hist-vol">∑ ${totalVol} кг</span></div>
+      <div class="hist-head"><span class="hist-date">${d}</span><span class="hist-vol">${volLabel}</span></div>
       <div class="hist-exlist">${exs}</div>${rows}
     </div>`;
   }).join('');
@@ -1107,7 +1198,7 @@ window.addEventListener('resize',()=>{
   const ex = document.getElementById('prog-picker-btn').dataset.ex;
   if (!ex) return;
   const pts=getProgressData(ex);
-  if(pts.length) drawChart(pts);
+  if(pts.length) drawChart(pts, isCardio(ex)?'км':'кг');
 });
 
 renderRoutineChips();
