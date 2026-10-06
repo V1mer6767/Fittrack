@@ -146,6 +146,13 @@ header {
 .sheet-title { font-family: var(--display); font-size: 22px; letter-spacing: .5px; margin-bottom: 16px; }
 #pick-backdrop { z-index: 42; }
 #pick-sheet { z-index: 43; }
+#new-backdrop { z-index: 45; }
+#new-sheet { z-index: 46; }
+.type-toggle { display:flex; gap:8px; margin-bottom:12px; }
+.type-toggle .chip { flex:1; text-align:center; }
+.new-check { display:flex; align-items:center; gap:10px; margin:4px 0 14px; font-size:14px; color:var(--text); }
+.new-check input { width:20px; height:20px; accent-color: var(--accent); }
+.new-hint { font-size:12px; color:var(--dim); margin:-6px 0 12px; }
 .sheet-close { position: absolute; right: 16px; top: 16px; background: var(--surface2); border: none; color: var(--dim); width: 32px; height: 32px; border-radius: 50%; font-size: 15px; cursor: pointer; }
 
 /* ---------- quick log sheet ---------- */
@@ -360,12 +367,14 @@ nav button.active { color: var(--accent); }
       <button class="btn-link-icon" onclick="openRoutineEditor(activeRoutineId)" style="background:none;border:none;color:var(--dim);font-size:15px;cursor:pointer;">✏️</button>
     </div>
     <div id="routine-checklist"></div>
+    <button class="chip ghost" style="width:100%; text-align:center; margin-top:8px;" onclick="openNewExercise()">➕ Нова вправа</button>
   </div>
 
   <div class="card" id="freeform-card">
     <div class="card-title"><span>Вправа</span></div>
     <div class="chip-row" id="recent-chip-row"></div>
     <button class="chip ghost" style="width:100%; text-align:center; margin-top:2px;" onclick="openExercisePicker(startLogFor)">🔍 Усі вправи</button>
+    <button class="chip ghost" style="width:100%; text-align:center; margin-top:8px;" onclick="openNewExercise()">➕ Нова вправа</button>
   </div>
 
   <div class="card" id="today-card" style="display:none">
@@ -506,6 +515,25 @@ nav button.active { color: var(--accent); }
   <div id="pick-list"></div>
 </div>
 
+<!-- New exercise sheet -->
+<div class="sheet-backdrop" id="new-backdrop" onclick="closeSheet('new')"></div>
+<div class="sheet" id="new-sheet">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" onclick="closeSheet('new')">✕</button>
+  <div class="sheet-title">Нова вправа</div>
+  <input type="text" class="search-input" id="new-name" placeholder="Назва вправи (напр. Жим у хамері)" maxlength="40"/>
+  <div class="type-toggle">
+    <div class="chip active" id="new-type-strength" onclick="setNewType('strength')">🏋️ Силова</div>
+    <div class="chip" id="new-type-cardio" onclick="setNewType('cardio')">🏃 Кардіо</div>
+  </div>
+  <div class="new-hint" id="new-type-hint">Вага × підходи × повторення</div>
+  <label class="new-check" id="new-routine-row" style="display:none">
+    <input type="checkbox" id="new-add-routine" checked/>
+    <span id="new-routine-label">Додати до програми</span>
+  </label>
+  <button class="chip active" style="width:100%; text-align:center; padding:14px;" id="new-save-btn" onclick="createNewExercise()">Створити і записати</button>
+</div>
+
 <!-- Routine editor sheet -->
 <div class="sheet-backdrop" id="re-backdrop" onclick="closeSheet('re')"></div>
 <div class="sheet" id="re-sheet">
@@ -544,7 +572,9 @@ const BASE_EXERCISES = [
   "Бігова доріжка"
 ];
 const CARDIO_EXERCISES = ["Бігова доріжка"];
-function isCardio(name) { return CARDIO_EXERCISES.includes(name); }
+let customCardio = JSON.parse(localStorage.getItem('fittrack_custom_cardio') || '[]');
+function saveCustomCardio() { localStorage.setItem('fittrack_custom_cardio', JSON.stringify(customCardio)); }
+function isCardio(name) { return CARDIO_EXERCISES.includes(name) || customCardio.includes(name); }
 const r2 = n => Math.round(n * 100) / 100;
 function fmtDuration(min) {
   const total = Math.round(min);
@@ -792,13 +822,15 @@ function renderPickerList() {
   const all = allExercises();
   const filtered = q ? all.filter(e=>e.toLowerCase().includes(q)) : all;
   const list = document.getElementById('pick-list');
-  let html = filtered.map(ex=>
+  let html = '';
+  if (!pickerOptions.noAdd) html += `<div class="pick-row add-mode" onclick="openNewExercise()"><span>➕ Створити нову вправу</span></div>`;
+  html += filtered.map(ex=>
     `<div class="pick-row" onclick="pickerChoose('${ex.replace(/'/g,"\\'")}')"><span>${ex}</span></div>`
   ).join('');
   if (!pickerOptions.noAdd && q && !all.some(e=>e.toLowerCase()===q)) {
-    html += `<div class="pick-row add-mode" onclick="pickerAddCustom()"><span>+ Додати «${document.getElementById('pick-search').value.trim()}»</span></div>`;
+    html += `<div class="pick-row add-mode" onclick="openNewExercise(document.getElementById('pick-search').value.trim())"><span>+ Додати «${document.getElementById('pick-search').value.trim()}»</span></div>`;
   }
-  if (!filtered.length && (pickerOptions.noAdd || !q)) {
+  if (!filtered.length && pickerOptions.noAdd) {
     html = `<div class="pick-empty">Нічого не знайдено</div>`;
   }
   list.innerHTML = html;
@@ -812,6 +844,51 @@ function pickerAddCustom() {
   if (!v) return;
   if (!customExercises.includes(v) && !BASE_EXERCISES.includes(v)) { customExercises.push(v); saveCustom(); }
   if (pickerCallback) pickerCallback(v);
+}
+
+/* ---------- create new exercise ---------- */
+let newType = 'strength';
+let newFromPicker = false;
+function setNewType(t) {
+  newType = t;
+  document.getElementById('new-type-strength').classList.toggle('active', t==='strength');
+  document.getElementById('new-type-cardio').classList.toggle('active', t==='cardio');
+  document.getElementById('new-type-hint').textContent = t==='cardio' ? 'Відстань і швидкість (як бігова доріжка)' : 'Вага × підходи × повторення';
+}
+function openNewExercise(prefill) {
+  newFromPicker = document.getElementById('pick-sheet').classList.contains('open');
+  document.getElementById('new-name').value = prefill || '';
+  setNewType('strength');
+  const routine = routines.find(r=>r.id===activeRoutineId);
+  const row = document.getElementById('new-routine-row');
+  const draftMode = newFromPicker && pickerOptions && pickerOptions.addMode;
+  if (routine && !draftMode) {
+    row.style.display = 'flex';
+    document.getElementById('new-add-routine').checked = true;
+    document.getElementById('new-routine-label').textContent = 'Додати до програми «' + routine.name + '»';
+  } else row.style.display = 'none';
+  document.getElementById('new-save-btn').textContent = draftMode ? 'Створити і додати' : 'Створити і записати';
+  openSheet('new');
+  setTimeout(()=>document.getElementById('new-name').focus(), 250);
+}
+function createNewExercise() {
+  const name = document.getElementById('new-name').value.trim().replace(/\s+/g,' ');
+  if (!name) { alert('Введи назву вправи'); return; }
+  const existing = allExercises().find(e=>e.toLowerCase()===name.toLowerCase());
+  const finalName = existing || name;
+  if (!existing) {
+    customExercises.push(finalName); saveCustom();
+    if (newType==='cardio') { customCardio.push(finalName); saveCustomCardio(); }
+  }
+  closeSheet('new');
+  const draftMode = newFromPicker && pickerOptions && pickerOptions.addMode;
+  if (draftMode) { addExerciseToRoutineDraft(finalName); return; }
+  const routine = routines.find(r=>r.id===activeRoutineId);
+  if (routine && document.getElementById('new-add-routine').checked && !routine.exercises.includes(finalName)) {
+    routine.exercises.push(finalName); saveRoutines();
+  }
+  renderLogView();
+  startLogFor(finalName);
 }
 
 function selectProgressExercise(ex) {
