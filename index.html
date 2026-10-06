@@ -34,12 +34,12 @@
   --body: 'Manrope', sans-serif;
 }
 
-html, body { height: 100%; overscroll-behavior: none; }
+html { overscroll-behavior: none; }
+body { overscroll-behavior: none; }
 body {
   background: var(--bg);
   font-family: var(--body);
   color: var(--text);
-  padding-bottom: 84px;
   min-height: 100vh;
 }
 
@@ -79,7 +79,7 @@ header {
 .streak b { font-family: var(--display); font-size: 24px; color: var(--accent); line-height: 1; }
 .streak span { font-size: 11px; color: var(--dim); }
 
-.view { display: none; padding: 0 20px 20px; }
+.view { display: none; padding: 0 20px calc(110px + env(safe-area-inset-bottom)); }
 .view.active { display: block; }
 
 .card {
